@@ -1,0 +1,34 @@
+###===---
+# DiscordRewards by Sheidy
+###===---
+
+
+
+###===---
+# When a (discord) user reach a certain message amount it can be rewarded.
+# Don't forget that the user needs to have verified/linked their account!
+###===---
+message-rewards:
+  - 100:
+      commands:
+        - 'tell {player_name} You have reached 100 messages, here is your reward!'
+        - 'eco give {player_name} 100'
+  - 200:
+      commands:
+        - 'tell {player_name} You have reached 200 messages, here is your reward!'
+        - 'eco give {player_name} 200'
+  - 500:
+      commands:
+        - 'tell {player_name} You have reached 500 messages, here is your reward!'
+        - 'eco give {player_name} 500'
+
+###===---
+# If this option is enabled, a message will be sent to a channel of your choice
+# when a player reach a certain message amount.
+# The message is located at 'embed/reached.json'
+###===---
+send-discord-message: true
+
+
+
+# Enjoy! ^^

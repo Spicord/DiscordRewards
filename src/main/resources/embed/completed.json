@@ -1,0 +1,11 @@
+{
+  "embed": {
+    "title": "Account Linking",
+    "description": "Congratulations **%player%**! You have completed the linking process",
+    "color": 5540790,
+    "footer": {
+      "icon_url": "https://mcdb.eu/i/gift.gif",
+      "text": "Powered by DiscordRewards"
+    }
+  }
+}

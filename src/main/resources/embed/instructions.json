@@ -1,0 +1,11 @@
+{
+  "embed": {
+    "title": "Account Linking | Instructions",
+    "description": ":one: Connect to our server: **my.awesome.server**\n:two: Run the **/link** command to get a code\n:three: Send the code below here!\n\nEnjoy your reward!",
+    "color": 5540790,
+    "footer": {
+      "icon_url": "https://mcdb.eu/i/gift.gif",
+      "text": "Powered by DiscordRewards"
+    }
+  }
+}

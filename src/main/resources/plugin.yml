@@ -1,0 +1,8 @@
+name: DiscordRewards
+main: eu.mcdb.discordrewards.BukkitPlugin
+author: OopsieWoopsie
+version: ${project.version}
+depend: [Spicord]
+commands:
+  link:
+    aliases: [discord]

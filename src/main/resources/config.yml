@@ -1,0 +1,49 @@
+###===---
+# DiscordRewards by Sheidy
+#
+# This configuration file only applies for your Minecraft server.
+# The config for the discord server is located at discord.yml
+###===---
+
+prefix: '&6&lDiscord &7»'
+
+###===---
+# This instructions are sent to the player who does /discord or /link
+###===---
+verify-instructions:
+  - ''
+  - '{prefix} &aSend the code &c{code} &aon the &9#verification'
+  - '{prefix} &achannel of our Discord server!'
+  - '{prefix}&9 https://discord.gg/YOURLINK'
+  - ''
+
+###===---
+# These messages will be broadcasted when a player completes the verification process
+###===---
+broadcast:
+  enabled: true
+  message:
+    - ''
+    - '{prefix} &eThe player &9{player_name} &ehas verified their account'
+    - '{prefix} &eand won &a$500&e!'
+    - '{prefix} &eDo &9/link &eor &9/discord &eto verify yours!'
+    - ''
+
+###===---
+# These commands will be executed when a player completes the verification process
+###===---
+reward:
+  enabled: true
+  commands:
+    - 'tell {player_name} Hey, there is your reward ^^'
+    - 'eco give {player_name} 500'
+
+###===---
+# This message will be sent to the player if it does /link or /discord
+# and it have already verified their account.
+###===---
+already-verified-message: '{prefix} &cYou have already verified your account!'
+
+
+
+# Enjoy! ^^

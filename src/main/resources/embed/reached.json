@@ -1,0 +1,15 @@
+{
+  "embed": {
+    "author": {
+      "name": "Reward!",
+      "url": "https://mcdb.eu/r/4",
+      "icon_url": "https://mcdb.eu/i/gift.gif"
+    },
+    "description": "Congrats {user_mention}, you have reached {amount} messages and won a reward!",
+    "color": 16750903,
+    "footer": {
+      "icon_url": "https://mcdb.eu/i/gift.gif",
+      "text": "Powered by DiscordRewards"
+    }
+  }
+}
