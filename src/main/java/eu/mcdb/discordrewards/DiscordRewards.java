@@ -120,7 +120,7 @@ public class DiscordRewards extends SimpleAddon {
                 if (config.isRewardEnabled()) {
                     config.getRewardCommands().stream()
                             .map(placeholders)
-                            .forEach(c -> server.dispatchCommand(server.getConsoleSender(), c));
+                            .forEach(Config::executeSyncCommand);
                 }
                 if (dc.shouldSendMessage()) {
                     Embed embed = embedLoader.getEmbedByName("completed");

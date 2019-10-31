@@ -30,7 +30,7 @@ import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 
-    private BukkitPlugin plugin;
+    private static BukkitPlugin plugin;
     private Gson gson;
     @Getter
     private String prefix;
@@ -51,7 +51,7 @@ public class Config {
     private Rewards rewards;
 
     public Config(BukkitPlugin plugin, Map<String, FileConfiguration> cn) {
-        this.plugin = plugin;
+        Config.plugin = plugin;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
 
         FileConfiguration config = cn.get("config");
@@ -250,12 +250,15 @@ public class Config {
 
                 Arrays.asList(commands).stream()
                         .map(placeholders)
-                        .forEach(this::executeCommand);
+                        .forEach(Config::executeSyncCommand);
             }
 
-            public void executeCommand(String cmd) {
-                Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
-            }
         }
+    }
+
+    public static void executeSyncCommand(String cmd) {
+        Bukkit.getScheduler().callSyncMethod(plugin, () -> {
+            return Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
+        });
     }
 }
