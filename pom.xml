@@ -18,6 +18,10 @@
             <name>jcenter-bintray</name>
             <url>http://jcenter.bintray.com</url>
         </repository>
+        <repository>
+            <id>spicord-repo</id>
+            <url>https://repo.mcdb.eu/</url>
+        </repository>
     </repositories>
 
     <dependencies>
