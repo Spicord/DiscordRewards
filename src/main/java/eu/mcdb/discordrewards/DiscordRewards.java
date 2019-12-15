@@ -87,17 +87,18 @@ public class DiscordRewards extends SimpleAddon {
         if (messageStr.equals(prefix + "instructions"))
             return;
 
-        if (author.isBot()) {
-            if (bot.getJda().getSelfUser().getIdLong() != author.getIdLong()) {
-                message.delete().queue();
-            }
-            return;
-        }
-
         long id = author.getIdLong();
         Account acc = lm.getAccountByDiscordId(id);
 
         if (event.getChannel().getIdLong() == channelId) {
+
+            if (author.isBot()) {
+                if (bot.getJda().getSelfUser().getIdLong() != id) {
+                    message.delete().queue();
+                }
+                return;
+            }
+
             String code = messageStr;
 
             message.delete().queue();
