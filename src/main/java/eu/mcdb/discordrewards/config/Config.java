@@ -1,5 +1,6 @@
 package eu.mcdb.discordrewards.config;
 
+import java.awt.Color;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
@@ -14,49 +15,45 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.bukkit.Bukkit;
-import org.bukkit.configuration.file.FileConfiguration;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import eu.mcdb.discordrewards.Account;
-import eu.mcdb.discordrewards.BukkitPlugin;
+import eu.mcdb.universal.Server;
+import eu.mcdb.universal.config.YamlConfiguration;
+import eu.mcdb.util.chat.ChatColor;
 import lombok.Getter;
+import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.Guild;
 import net.dv8tion.jda.core.entities.Role;
-import net.md_5.bungee.api.ChatColor;
 
 public class Config {
 
-    private static BukkitPlugin plugin;
-    private Gson gson;
-    @Getter
-    private String prefix;
+    @Getter private String prefix;
     private List<String> verifyInstructions;
-    @Getter
-    private boolean broadcastEnabled;
-    @Getter
-    private List<String> broadcastMessage;
-    @Getter
-    private boolean rewardEnabled;
-    @Getter
-    private List<String> rewardCommands;
-    @Getter
-    private String alreadyVerifiedMessage;
-    @Getter
-    private Discord discord;
-    @Getter
-    private Rewards rewards;
+    @Getter private boolean broadcastEnabled;
+    @Getter private List<String> broadcastMessage;
+    @Getter private boolean rewardEnabled;
+    @Getter private List<String> rewardCommands;
+    @Getter private String alreadyVerifiedMessage;
+    @Getter private Discord discord;
+    @Getter private Rewards rewards;
 
-    public Config(BukkitPlugin plugin, Map<String, FileConfiguration> cn) {
-        Config.plugin = plugin;
+    @Getter private final File dataFolder;
+    @Getter private Logger logger;
+    private final Gson gson;
+
+    public Config(File dataFolder, Logger logger) {
+        this.dataFolder = dataFolder;
+        this.logger = logger;
         this.gson = new GsonBuilder().setPrettyPrinting().create();
 
-        FileConfiguration config = cn.get("config");
-        FileConfiguration discord = cn.get("discord");
-        FileConfiguration rewards = cn.get("rewards");
+        YamlConfiguration config = YamlConfiguration.load(new File(dataFolder, "config.yml"));
+        YamlConfiguration discord = YamlConfiguration.load(new File(dataFolder, "discord.yml"));
+        YamlConfiguration rewards = YamlConfiguration.load(new File(dataFolder, "rewards.yml"));
 
         this.prefix = config.getString("prefix");
         this.verifyInstructions = config.getStringList("verify-instructions");
@@ -95,25 +92,26 @@ public class Config {
 
         private boolean addRole;
         private boolean renameUser;
-        @Getter
-        private Long channelId;
+        @Getter private Long channelId;
         private boolean sendMessage;
-        @Getter
-        private String nameTemplate;
+        @Getter private String nameTemplate;
         private String roleType;
         private String role;
 
-        private Discord(FileConfiguration config) {
-            this.addRole = config.getBoolean("add-role.enabled", false);
-            this.roleType = config.getString("add-role.type");
-            this.role = config.getString("add-role.role");
-            this.channelId = config.getLong("channel-id");
-            this.sendMessage = config.getBoolean("send-message", false);
-            this.renameUser = config.getBoolean("rename-user", false);
+        private Discord(YamlConfiguration config) {
+            this.addRole      = config.getBoolean("add-role.enabled", false);
+            this.roleType     = config.getString("add-role.type");
+            this.role         = config.getString("add-role.role");
+            this.channelId    = config.getLong("channel-id");
+            this.sendMessage  = config.getBoolean("send-message", false);
+            this.renameUser   = config.getBoolean("rename-user", false);
             this.nameTemplate = config.getString("new-name");
 
             if (!(roleType.equals("name") || roleType.equals("id"))) {
-                throw new IllegalArgumentException("'add-role.type' should be 'name' or 'id', you have put '" + roleType + "'!");
+                roleType = "name";
+                role = "Verified";
+                logger.warning("'add-role.type' should be 'name' or 'id', you have put '" + roleType + "'!");
+                logger.warning("Using 'name=Verified' as default!");
             }
         }
 
@@ -129,13 +127,33 @@ public class Config {
             return sendMessage;
         }
 
-        public Role getRole(Guild guild) {
+        public Role getVerifiedRole(Guild guild) {
             if (roleType.equals("name")) {
                 List<Role> roles = guild.getRolesByName(role, false);
-                return roles.size() > 0 ? roles.get(0) : null;
+                return roles.size() > 0 ? roles.get(0) : createRole(guild);
             } else {
                 return guild.getRoleById(role);
             }
+        }
+
+        private Role createRole(Guild guild) {
+            if (guild.getSelfMember().hasPermission(Permission.MANAGE_ROLES)) {
+                try {
+                    logger.warning("The role '" + role + "' was not found, creating it...");
+                    Role r = guild.getController().createRole()
+                            .setName(role)
+                            .setColor(Color.GREEN)
+                            .setMentionable(false)
+                            .complete();
+                    logger.info("Created role '" + r.getName() + " (" + r.getId() + ")'");
+                    return r;
+                } catch (Exception e) {
+                    logger.severe("Cannot create the role: " + e.getMessage());
+                }
+            } else {
+                logger.warning("The role '" + role + "' was not found and the bot doesn't has permission to create it.");
+            }
+            return null;
         }
     }
 
@@ -146,7 +164,7 @@ public class Config {
         private Map<UUID, Set<Integer>> cached;
         private File cachedFile;
 
-        private Rewards(FileConfiguration config) {
+        private Rewards(YamlConfiguration config) {
             this.rewards = new HashMap<String, Reward>();
             this.sendDiscordMessage = config.getBoolean("send-discord-message");
 
@@ -165,7 +183,7 @@ public class Config {
                 rewards.put(data.getKey(), data.getValue());
             }
 
-            this.cachedFile = new File(plugin.getDataFolder(), "cached-rewards.json");
+            this.cachedFile = new File(dataFolder, "cached-rewards.json");
             loadCached();
         }
 
@@ -256,9 +274,7 @@ public class Config {
         }
     }
 
-    public static void executeSyncCommand(String cmd) {
-        Bukkit.getScheduler().callSyncMethod(plugin, () -> {
-            return Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), cmd);
-        });
+    public static void executeSyncCommand(String command) {
+    	Server.getInstance().dispatchCommand(command);
     }
 }

@@ -2,7 +2,13 @@
 # DiscordRewards by Sheidy
 ###===---
 
-
+# If you are using BungeeCord and you want to execute commands in different servers
+# you need to add the server name between "[]" before the command, you can get the
+# server name in your BungeeCord's config.yml file, in the "servers" section!
+# Example:
+# - '[lobby] tell {player_name} Hey! you have a pending reward in the survival server!'
+# - '[survival] tell {player_name} You got $500 for verifying your account!'
+# - '[survival] eco give {player_name} 500'
 
 ###===---
 # When a (discord) user reach a certain message amount it can be rewarded.

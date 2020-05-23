@@ -9,25 +9,25 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
-import java.util.function.Predicate;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.entity.Player;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import eu.mcdb.discordrewards.util.RandomUtils;
+import eu.mcdb.universal.player.UniversalPlayer;
 
 public class LinkManager {
 
     private final Gson gson;
-    private final HashMap<UUID, String> pending;
+    private final Map<UUID, String> pending;
     private final Map<Long, Account> accounts;
     private final File linkedFile;
+    private final Map<UUID, String> uuidNameCache;
 
     public LinkManager(File linkedFile) {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
         this.pending = new HashMap<UUID, String>();
         this.accounts = new HashMap<Long, Account>();
+        this.uuidNameCache = new HashMap<UUID, String>();
+
         this.linkedFile = linkedFile;
 
         try {
@@ -48,25 +48,30 @@ public class LinkManager {
         }
     }
 
-    public boolean isPending(Player p) {
-        return pending.containsKey(p.getUniqueId());
+    public boolean isPending(UniversalPlayer player) {
+        return pending.containsKey(player.getUniqueId());
     }
 
-    public String generateCode(Player player) {
-        String seed = player.getUniqueId().toString().replace("-", "").toUpperCase();
-        return RandomUtils.randomString(8, seed);
+    public String generateCode() {
+        String code;
+        do {
+            code = RandomUtils.randomString(8);
+        } while (pending.values().contains(code));
+        return code;
     }
 
-    public Account getAccountByDiscordId(Long id) {
+    public Account getAccount(Long id) {
         return accounts.get(id);
     }
 
-    public Account getAccountByUniqueId(UUID uuid) {
-        Predicate<Account> filter = a -> a.getUniqueId().equals(uuid);
-        return accounts.values().stream().filter(filter).findFirst().orElse(null);
+    public Account getAccount(UUID uuid) {
+        return accounts.values().stream()
+                .filter(account -> account.getUniqueId().equals(uuid))
+                .findFirst()
+                .orElse(null);
     }
 
-    public boolean isVerified(Player player) {
+    public boolean isVerified(UniversalPlayer player) {
         UUID uuid = player.getUniqueId();
 
         return accounts.values().stream()
@@ -74,8 +79,9 @@ public class LinkManager {
                 .anyMatch(uuid::equals);
     }
 
-    public void addPendingPlayer(Player player, String code) {
+    public void addPendingPlayer(UniversalPlayer player, String code) {
         pending.put(player.getUniqueId(), code);
+        uuidNameCache.put(player.getUniqueId(), player.getName());
     }
 
     public void save() {
@@ -101,6 +107,11 @@ public class LinkManager {
             if (_code.equals(code)) {
                 Account acc = new Account(discordId, getName(uuid), uuid.toString(), 0);
                 accounts.put(discordId, acc);
+
+                // cleanup
+                pending.values().remove(code);
+                uuidNameCache.remove(uuid);
+
                 save();
                 return acc;
             }
@@ -109,12 +120,18 @@ public class LinkManager {
     }
 
     private String getName(UUID uuid) {
-        OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(uuid);
-        return p == null ? "" : p.getName();
+        return uuidNameCache.get(uuid);
     }
 
-    // this is temporary
-    public void removeCode(String code) {
-        pending.values().remove(code);
+    public Map<UUID, String> getPending() {
+        return pending;
+    }
+
+    public Map<Long, Account> getAccounts() {
+        return accounts;
+    }
+
+    public Map<UUID, String> getUuidNameCache() {
+        return uuidNameCache;
     }
 }

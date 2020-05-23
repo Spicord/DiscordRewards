@@ -4,9 +4,6 @@ import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
-import org.bukkit.Server;
 import eu.mcdb.discordrewards.config.Config;
 import eu.mcdb.discordrewards.config.Config.Discord;
 import eu.mcdb.discordrewards.config.Config.Rewards;
@@ -17,6 +14,8 @@ import eu.mcdb.spicord.bot.command.DiscordBotCommand;
 import eu.mcdb.spicord.embed.Embed;
 import eu.mcdb.spicord.embed.EmbedLoader;
 import eu.mcdb.spicord.embed.EmbedSender;
+import eu.mcdb.universal.Server;
+import eu.mcdb.universal.player.UniversalPlayer;
 import net.dv8tion.jda.core.Permission;
 import net.dv8tion.jda.core.entities.ChannelType;
 import net.dv8tion.jda.core.entities.Guild;
@@ -39,12 +38,12 @@ public class DiscordRewards extends SimpleAddon {
     private EmbedLoader embedLoader;
     private String prefix;
 
-    public DiscordRewards(BukkitPlugin plugin, Config config) {
+    public DiscordRewards(LinkManager linkManager, Config config) {
         super("DiscordRewards", "rewards", "OopsieWoopsie", new String[] { "instructions" });
-        this.logger = plugin.getLogger();
-        this.lm = plugin.getLinkManager();
+        this.logger = config.getLogger();
+        this.lm = linkManager;
         this.config = config;
-        File embedFolder = new File(plugin.getDataFolder(), "embed");
+        File embedFolder = new File(config.getDataFolder(), "embed");
         this.embedLoader = new EmbedLoader();
         this.embedLoader.load(embedFolder);
     }
@@ -54,6 +53,8 @@ public class DiscordRewards extends SimpleAddon {
         this.channelId = config.getDiscord().getChannelId();
         this.channel = bot.getJda().getTextChannelById(channelId);
         this.prefix = bot.getCommandPrefix();
+
+        bot.getJda().addEventListener(new DiscordJoinListener(lm, this));
 
         if (channel == null) {
             logger.warning("===================================================");
@@ -66,7 +67,7 @@ public class DiscordRewards extends SimpleAddon {
     @Override
     public void onCommand(DiscordBotCommand command, String[] args) {
         if (command.getMessage().isFromType(ChannelType.TEXT)) {
-            if (command.getMember().hasPermission(Permission.MANAGE_CHANNEL)) {
+            if (command.getSender().hasPermission(Permission.MANAGE_CHANNEL)) {
                 command.getMessage().delete().queue();
                 command.reply(embedLoader.getEmbedByName("instructions"));
             }
@@ -79,7 +80,6 @@ public class DiscordRewards extends SimpleAddon {
         Member member = event.getMember();
         Message message = event.getMessage();
         String messageStr = message.getContentRaw();
-        Guild guild = event.getGuild();
 
         if (!event.isFromType(ChannelType.TEXT))
             return;
@@ -88,7 +88,7 @@ public class DiscordRewards extends SimpleAddon {
             return;
 
         long id = author.getIdLong();
-        Account acc = lm.getAccountByDiscordId(id);
+        Account acc = lm.getAccount(id);
 
         if (event.getChannel().getIdLong() == channelId) {
 
@@ -108,15 +108,14 @@ public class DiscordRewards extends SimpleAddon {
             if (lm.isValidCode(code)) {
                 Discord dc = config.getDiscord();
                 Account account = lm.link(author.getIdLong(), code);
-                lm.removeCode(code);
 
                 Function<String, String> placeholders = str -> str.replace("{player_name}", account.getName());
-                Server server = Bukkit.getServer();
+                Server server = Server.getInstance();
 
                 if (config.isBroadcastEnabled()) {
                     config.getBroadcastMessage().stream()
                             .map(placeholders)
-                            .forEach(server::broadcastMessage);
+                            .forEach(server::broadcast);
                 }
                 if (config.isRewardEnabled()) {
                     config.getRewardCommands().stream()
@@ -131,30 +130,8 @@ public class DiscordRewards extends SimpleAddon {
                     EmbedSender.prepare(channel, Embed.fromJson(str)).complete()
                             .delete().queueAfter(10, TimeUnit.SECONDS);
                 }
-                if (dc.shouldRenameUser()) {
-                    String name = placeholders.apply(dc.getNameTemplate());
-                    try {
-                        guild.getController().setNickname(member, name).queue();
-                    } catch (InsufficientPermissionException e) {
-                        System.out.println("[ERROR] Could't change nickname of member because the bot doesn't have permission to!");
-                    } catch (HierarchyException e) {
-                        System.out.println("[ERROR] The bot can't modify the nickname of members with higher hierarchy!");
-                    }
-                }
-                if (dc.shouldAddRole()) {
-                    Role role = dc.getRole(guild);
-                    if (role == null) {
-                        System.out.println("[ERROR] Could't add role to member (role not found!)");
-                    } else {
-                        try {
-                            guild.getController().addRolesToMember(member, role).queue();
-                        } catch (InsufficientPermissionException e) {
-                            System.out.println("[ERROR] Could't add role to member because the bot doesn't have permission to!");
-                        } catch (HierarchyException e) {
-                            System.out.println("[ERROR] The bot can't modify roles of members with higher hierarchy!");
-                        }
-                    }
-                }
+                renameUser(member, account.getName());
+                addRole(member);
             } else {
                 Embed embed = embedLoader.getEmbedByName("invalid-code");
                 EmbedSender.prepare(channel, embed).complete()
@@ -167,17 +144,17 @@ public class DiscordRewards extends SimpleAddon {
                 Rewards rw = config.getRewards();
 
                 if (rw.appliesForReward(count)) {
-                    OfflinePlayer p = Bukkit.getServer().getOfflinePlayer(acc.getUniqueId());
+                    UniversalPlayer p = Server.getInstance().getPlayer(acc.getUniqueId());
                     Reward reward = rw.getReward(count);
 
-                    if (p.isOnline()) {
+                    if (p != null) {
                         reward.give(acc);
                     } else {
                         rw.cache(acc, count);
                     }
 
                     if (rw.shouldSendDiscordMessage()) {
-                        Embed embed = embedLoader.getEmbedByName(p.isOnline() ? "reached" : "reached-offline");
+                        Embed embed = embedLoader.getEmbedByName(p != null ? "reached" : "reached-offline");
 
                         embed = Embed.fromJson(embed.toString()
                                 .replace("{user_mention}", author.getAsMention())
@@ -189,4 +166,39 @@ public class DiscordRewards extends SimpleAddon {
             }
         }
     }
+
+    protected void renameUser(Member member, String name1) {
+        Discord dc = config.getDiscord();
+		Guild guild = member.getGuild();
+        if (dc.shouldRenameUser()) {
+            Function<String, String> placeholders = str -> str.replace("{player_name}", name1);
+            String name = placeholders.apply(dc.getNameTemplate());
+            try {
+                guild.getController().setNickname(member, name).queue();
+            } catch (InsufficientPermissionException e) {
+                System.out.println("[ERROR] Could't change nickname of member because the bot doesn't have permission to!");
+            } catch (HierarchyException e) {
+                System.out.println("[ERROR] The bot can't modify the nickname of members with higher hierarchy!");
+            }
+        }
+	}
+
+	protected void addRole(Member member) {
+        Discord dc = config.getDiscord();
+		Guild guild = member.getGuild();
+        if (dc.shouldAddRole()) {
+            Role role = dc.getVerifiedRole(guild);
+            if (role == null) {
+                System.out.println("[ERROR] Could't add role to user '"+member.getAsMention()+"' (role not found!)");
+            } else {
+                try {
+                    guild.getController().addRolesToMember(member, role).queue();
+                } catch (InsufficientPermissionException e) {
+                    System.out.println("[ERROR] Could't add role to member because the bot doesn't have permission to!");
+                } catch (HierarchyException e) {
+                    System.out.println("[ERROR] The bot can't modify roles of members with higher hierarchy!");
+                }
+            }
+        }
+	}
 }

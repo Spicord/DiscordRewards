@@ -1,6 +1,7 @@
 package eu.mcdb.discordrewards.util;
 
 import java.security.SecureRandom;
+import java.util.UUID;
 
 public class RandomUtils {
 
@@ -19,5 +20,10 @@ public class RandomUtils {
         }
 
         return sb.toString();
+    }
+
+    public static String randomString(int length) {
+        String seed = UUID.randomUUID().toString().replace("-", "").toUpperCase();
+        return randomString(length, seed);
     }
 }

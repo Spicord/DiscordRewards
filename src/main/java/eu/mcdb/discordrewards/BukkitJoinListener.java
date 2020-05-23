@@ -6,12 +6,12 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import eu.mcdb.discordrewards.config.Config.Rewards;
 
-public class JoinListener implements Listener {
+public class BukkitJoinListener implements Listener {
 
     private BukkitPlugin plugin;
     private Rewards rewards;
 
-    public JoinListener(BukkitPlugin plugin, Rewards rewards) {
+    public BukkitJoinListener(BukkitPlugin plugin, Rewards rewards) {
         this.plugin = plugin;
         this.rewards = rewards;
     }
@@ -21,7 +21,7 @@ public class JoinListener implements Listener {
         UUID uuid = e.getPlayer().getUniqueId();
 
         if (rewards.isCached(uuid)) {
-            Account acc = plugin.getLinkManager().getAccountByUniqueId(uuid);
+            Account acc = plugin.getLinkManager().getAccount(uuid);
             rewards.getCachedRewards(uuid).forEach(r -> r.give(acc));
             rewards.cleanCache(uuid);
         }

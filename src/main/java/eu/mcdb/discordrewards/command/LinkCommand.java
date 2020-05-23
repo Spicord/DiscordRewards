@@ -1,41 +1,44 @@
 package eu.mcdb.discordrewards.command;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.entity.Player;
 import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.discordrewards.config.Config;
+import eu.mcdb.universal.command.UniversalCommandSender;
+import eu.mcdb.universal.command.api.Command;
+import eu.mcdb.universal.player.UniversalPlayer;
 
-public class LinkCommand implements CommandExecutor {
+public class LinkCommand extends Command {
 
     private final LinkManager linkManager;
     private final Config config;
 
     public LinkCommand(LinkManager linkManager, Config config) {
+        super("link", null, new String[] { "discord" });
+
         this.linkManager = linkManager;
         this.config = config;
+
+        setCommandHandler(this::handle);
     }
 
-    @Override
-    public boolean onCommand(CommandSender sender, Command command, String arg2, String[] arg3) {
-        if (sender instanceof Player) {
-            Player player = (Player) sender;
+    public boolean handle(UniversalCommandSender sender) {
+        if (sender.isPlayer()) {
+            UniversalPlayer player = sender.getPlayer();
 
             if (linkManager.isVerified(player)) {
                 player.sendMessage(config.getAlreadyVerifiedMessage());
             } else {
-                String code = linkManager.generateCode(player);
+                String code = linkManager.generateCode();
 
-                for (String s : config.getVerifyInstructions(code)) {
-                    player.sendMessage(s);
+                for (String line : config.getVerifyInstructions(code)) {
+                    player.sendMessage(line);
                 }
 
                 linkManager.addPendingPlayer(player, code);
             }
         } else {
-            sender.sendMessage("You need to be a player to run this command!");
+            sender.sendMessage("&cYou need to be a player to run this command!");
         }
+
         return true;
     }
 }

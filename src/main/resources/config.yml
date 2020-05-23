@@ -8,17 +8,19 @@
 prefix: '&6&lDiscord &7»'
 
 ###===---
-# This instructions are sent to the player who does /discord or /link
+# This instruction will be sent to the player when it runs /discord or /link
+# The code placeholder is {code}
 ###===---
 verify-instructions:
   - ''
   - '{prefix} &aSend the code &c{code} &aon the &9#verification'
   - '{prefix} &achannel of our Discord server!'
-  - '{prefix}&9 https://discord.gg/YOURLINK'
+  - '{prefix} &9 https://discord.gg/YOURLINK'
   - ''
 
 ###===---
-# These messages will be broadcasted when a player completes the verification process
+# This message will be broadcasted when a player completes the verification process
+# The player name placeholder is {player_name}
 ###===---
 broadcast:
   enabled: true
@@ -30,7 +32,9 @@ broadcast:
     - ''
 
 ###===---
-# These commands will be executed when a player completes the verification process
+# This commands will be executed when a player completes the verification process
+# Turn 'enabled' to 'false' if you want to disable this.
+# The player name placeholder is {player_name}
 ###===---
 reward:
   enabled: true
