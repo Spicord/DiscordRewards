@@ -20,7 +20,7 @@ public class Config {
     @Getter private List<String> rewardCommands;
     @Getter private String alreadyVerifiedMessage;
     @Getter private Discord discord;
-    @Getter private Rewards rewards;
+    @Getter private RewardManager rewards;
 
     @Getter private final File dataFolder;
     @Getter private Logger logger;
@@ -52,7 +52,7 @@ public class Config {
         this.alreadyVerifiedMessage = ChatColor.translateAlternateColorCodes('&', alreadyVerifiedMessage);
 
         this.discord = new Discord(logger, discord);
-        this.rewards = new Rewards(dataFolder, rewards);
+        this.rewards = new RewardManager(dataFolder, rewards);
     }
 
     public List<String> getVerifyInstructions(String code) {

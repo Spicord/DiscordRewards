@@ -6,14 +6,13 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.concurrent.TimeUnit;
+import org.spicord.SpicordLoader;
+import org.spicord.embed.EmbedLoader;
 import eu.mcdb.discordrewards.DiscordRewards;
 import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.discordrewards.api.LinkingServiceImpl;
 import eu.mcdb.discordrewards.command.LinkCommand;
 import eu.mcdb.discordrewards.config.Config;
-import org.spicord.Spicord;
-import org.spicord.event.SpicordEvent;
-import org.spicord.embed.EmbedLoader;
 import net.md_5.bungee.api.plugin.Plugin;
 
 public class BungeePlugin extends Plugin {
@@ -28,24 +27,24 @@ public class BungeePlugin extends Plugin {
         saveResource("discord.yml");
         saveResource("rewards.yml");
 
-        EmbedLoader loader = extractEmbeds();
+        EmbedLoader embedLoader = extractEmbeds();
+
         File linked = new File(getDataFolder(), "linked.json");
         this.linkManager = new LinkManager(linked);
+
         this.config = new Config(getDataFolder(), getLogger());
 
-        getProxy().registerChannel("Spicord:DiscordRewards");
-
-        Spicord.getInstance().addEventListener(SpicordEvent.SPICORD_LOADED, s -> {
-            s.getAddonManager().registerAddon(new DiscordRewards(linkManager, config));
+        SpicordLoader.addStartupListener(s -> {
+            s.getAddonManager().registerAddon(new DiscordRewards(linkManager, config, embedLoader));
             getProxy().getPluginManager().registerListener(this, new BungeeJoinListener(linkManager, config.getRewards()));
+
+            this.ls = new LinkingServiceImpl(linkManager, s);
+            ls.register();
         });
 
         new LinkCommand(linkManager, config).register(this);
 
         getProxy().getScheduler().schedule(this, () -> linkManager.save(), 5, 5, TimeUnit.MINUTES);
-
-        this.ls = new LinkingServiceImpl(linkManager);
-        ls.register();
     }
 
     @Override
@@ -71,8 +70,7 @@ public class BungeePlugin extends Plugin {
         try {
             return EmbedLoader.extractAndLoad(getFile(), new File(getDataFolder(), "embed"));
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException();
         }
-        return null;
     }
 }

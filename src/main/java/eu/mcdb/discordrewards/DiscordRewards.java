@@ -5,7 +5,7 @@ import java.util.function.Function;
 import java.util.logging.Logger;
 import eu.mcdb.discordrewards.config.Config;
 import eu.mcdb.discordrewards.config.Discord;
-import eu.mcdb.discordrewards.config.Rewards;
+import eu.mcdb.discordrewards.config.RewardManager;
 import org.spicord.api.addon.SimpleAddon;
 import org.spicord.bot.DiscordBot;
 import org.spicord.bot.command.DiscordBotCommand;
@@ -36,12 +36,12 @@ public class DiscordRewards extends SimpleAddon {
     private Long channelId;
     private String prefix;
 
-    public DiscordRewards(LinkManager linkManager, Config config) {
+    public DiscordRewards(LinkManager linkManager, Config config, EmbedLoader embedLoader) {
         super("DiscordRewards", "rewards", "Sheidy", new String[] { "instructions" });
         this.logger = config.getLogger();
         this.linkManager = linkManager;
         this.config = config;
-        this.embedLoader = new EmbedLoader();
+        this.embedLoader = embedLoader;
     }
 
     @Override
@@ -151,16 +151,16 @@ public class DiscordRewards extends SimpleAddon {
             if (acc != null) {
                 int count = acc.getMessageCount() + 1;
                 acc.setMessageCount(count);
-                Rewards rw = config.getRewards();
+                RewardManager rw = config.getRewards();
 
                 if (rw.appliesForReward(count)) {
                     UniversalPlayer p = Server.getInstance().getPlayer(acc.getUniqueId());
-                    Rewards.Reward reward = rw.getReward(count);
+                    RewardManager.Reward reward = rw.getReward(count);
 
                     if (p != null) {
-                        //rw.getManager().give(reward, p);
+                        rw.give(reward, p);
                     } else {
-                        //rw.getManager().cache(acc, count);
+                        rw.cache(acc, count);
                     }
 
                     if (rw.shouldSendDiscordMessage()) {
@@ -180,7 +180,7 @@ public class DiscordRewards extends SimpleAddon {
     protected void renameUser(Member member, String newName) {
         Discord dc = config.getDiscord();
 		Guild guild = member.getGuild();
-        if (dc.shouldRenameUser()) {
+		if (dc.shouldRenameUser()) {
             Function<String, String> placeholders = str -> str.replace("{player_name}", newName);
             String name = placeholders.apply(dc.getNameTemplate());
             try {

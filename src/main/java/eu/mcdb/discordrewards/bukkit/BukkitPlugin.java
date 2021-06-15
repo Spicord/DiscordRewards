@@ -6,9 +6,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.spicord.Spicord;
 import org.spicord.SpicordLoader;
-import org.spicord.event.SpicordEvent;
 import eu.mcdb.discordrewards.DiscordRewards;
 import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.discordrewards.api.LinkingServiceImpl;
@@ -39,8 +37,11 @@ public class BukkitPlugin extends JavaPlugin {
 		if (firstRun) {
 		    firstRun = false;
             SpicordLoader.addStartupListener(s -> {
-                s.getAddonManager().registerAddon(new DiscordRewards(linkManager, config));
-                getServer().getPluginManager().registerEvents(new BukkitJoinListener(this, config.getRewards()), this);
+                s.getAddonManager().registerAddon(new DiscordRewards(linkManager, config, embedLoader));
+                getServer().getPluginManager().registerEvents(new BukkitJoinListener(linkManager, config.getRewards()), this);
+
+                this.ls = new LinkingServiceImpl(linkManager, s);
+                ls.register();
             });
 		}
 
@@ -48,9 +49,6 @@ public class BukkitPlugin extends JavaPlugin {
 
         long fiveMinInTicks = (60 * 5) * 20; // 6000 ticks
         getServer().getScheduler().runTaskTimer(this, () -> linkManager.save(), fiveMinInTicks, fiveMinInTicks);
-
-        this.ls = new LinkingServiceImpl(linkManager);
-        ls.register();
     }
 
     @Override
@@ -81,8 +79,7 @@ public class BukkitPlugin extends JavaPlugin {
         try {
             return EmbedLoader.extractAndLoad(getFile(), new File(getDataFolder(), "embed"));
         } catch (Exception e) {
-            e.printStackTrace();
+            throw new RuntimeException();
         }
-        return null;
     }
 }

@@ -13,33 +13,42 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
 import eu.mcdb.discordrewards.Account;
+import eu.mcdb.universal.Server;
 import eu.mcdb.universal.config.YamlConfiguration;
+import eu.mcdb.universal.player.UniversalPlayer;
 
-public class Rewards {
+public class RewardManager {
 
     private Map<String, Reward> rewards;
-    private boolean sendDiscordMessage;
+    private boolean shouldSendDiscordMessage;
     private Map<UUID, Set<Integer>> cached;
     private File cachedFile;
     private Gson gson;
 
-    Rewards(File dataFolder, YamlConfiguration config) {
+    RewardManager(File dataFolder, YamlConfiguration config) {
+        this.gson    = new Gson();
         this.rewards = new HashMap<String, Reward>();
-        this.sendDiscordMessage = config.getBoolean("send-discord-message");
 
-        List<?> l = config.getList("message-rewards");
-        this.gson = new Gson();
+        this.shouldSendDiscordMessage = config.getBoolean("send-discord-message");
 
-        for (Object i : l) {
-            String json = gson.toJson(i);
+        List<?> rewardList = config.getList("message-rewards");
 
-            Map<String, Reward> obj = gson.fromJson(json, rewardsFileType());
+        for (Object rawRewardData : rewardList) {
+            JsonElement rewardDataJson = gson.toJsonTree(rawRewardData);
 
-            Entry<String, Reward> commands = obj.entrySet().iterator().next();
+            Map<String, Reward> obj = gson.fromJson(rewardDataJson, rewardsFileType());
 
-            rewards.put(commands.getKey(), commands.getValue());
+            Entry<String, Reward> rewardData = obj.entrySet().iterator().next();
+
+            // key -> required message count (string)
+            // value -> command list
+
+            rewardData.getValue().requiredMessageCount = Integer.parseInt(rewardData.getKey());
+
+            rewards.put(rewardData.getKey(), rewardData.getValue());
         }
 
         this.cachedFile = new File(dataFolder, "cached-rewards.json");
@@ -76,7 +85,7 @@ public class Rewards {
     }
 
     public Stream<Reward> getCachedRewards(UUID uuid) {
-        return cached.get(uuid).stream().map(this::getReward);
+        return getCachedData(uuid).stream().map(this::getReward);
     }
 
     public boolean appliesForReward(int msgcount) {
@@ -91,7 +100,7 @@ public class Rewards {
     }
 
     public boolean shouldSendDiscordMessage() {
-        return sendDiscordMessage;
+        return shouldSendDiscordMessage;
     }
 
     public boolean isCached(UUID uuid) {
@@ -99,8 +108,17 @@ public class Rewards {
     }
 
     public void cache(Account acc, int msgcount) {
-        cached.computeIfAbsent(acc.getUniqueId(), u -> new HashSet<Integer>()).add(msgcount);
+        getCachedData(acc.getUniqueId()).add(msgcount);
         saveCached();
+    }
+
+    public void give(Reward reward, UniversalPlayer player) {
+        for (String command : reward.commands) {
+            Server.getInstance().dispatchCommand(
+                command.replace("{player_name}", player.getName())
+            );
+        }
+        getCachedData(player.getUniqueId()).remove(reward.requiredMessageCount);
     }
 
     public void cleanCache(UUID uuid) {
@@ -114,6 +132,8 @@ public class Rewards {
 
     public class Reward {
 
+        private transient int requiredMessageCount;
+
         private String[] commands;
 
         public String[] getCommands() {
@@ -122,10 +142,14 @@ public class Rewards {
     }
 
     private Type rewardsFileType() {
-        return new TypeToken<Map<String, Reward>>() {}.getType();
+        return new TypeToken<Map<String, Reward>>(){}.getType();
     }
 
     private Type cacheFileType() {
         return new TypeToken<Map<UUID, Set<Integer>>>(){}.getType();
+    }
+
+    private Set<Integer> getCachedData(UUID uuid) {
+        return cached.computeIfAbsent(uuid, u -> new HashSet<>());
     }
 }

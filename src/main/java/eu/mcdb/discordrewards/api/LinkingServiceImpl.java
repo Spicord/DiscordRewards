@@ -19,9 +19,9 @@ public class LinkingServiceImpl implements LinkingService {
     private final LinkManager lm;
     private final ServiceManager sm;
 
-    public LinkingServiceImpl(LinkManager lm) {
+    public LinkingServiceImpl(LinkManager lm, Spicord sp) {
         this.lm = lm;
-        this.sm = Spicord.getInstance().getServiceManager();
+        this.sm = sp.getServiceManager();
     }
 
     public void register() {
