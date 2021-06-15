@@ -34,14 +34,13 @@ public class LinkManager {
             if (linkedFile.exists()) {
                 Account[] linked = gson.fromJson(new FileReader(linkedFile), Account[].class);
 
-                if (linked == null || linked.length == 0)
+                if (linked == null || linked.length == 0) {
                     return;
+                }
 
                 for (Account account : linked) {
                     accounts.put(account.getId(), account);
                 }
-            } else {
-                linkedFile.createNewFile();
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -85,7 +84,9 @@ public class LinkManager {
     }
 
     public void save() {
-        if (accounts.values().size() == 0) return;
+        if (accounts.values().size() == 0) {
+            return;
+        }
         try (OutputStream os = new FileOutputStream(linkedFile)) {
             String json = gson.toJson(accounts.values());
             os.write(json.getBytes());
@@ -102,9 +103,9 @@ public class LinkManager {
     public Account link(Long discordId, String code) {
         for (Entry<UUID, String> entry : pending.entrySet()) {
             UUID uuid = entry.getKey();
-            String _code = entry.getValue();
+            String validCode = entry.getValue();
 
-            if (_code.equals(code)) {
+            if (validCode.equals(code)) {
                 Account acc = new Account(discordId, getName(uuid), uuid.toString(), 0);
                 accounts.put(discordId, acc);
 
@@ -113,6 +114,7 @@ public class LinkManager {
                 uuidNameCache.remove(uuid);
 
                 save();
+
                 return acc;
             }
         }

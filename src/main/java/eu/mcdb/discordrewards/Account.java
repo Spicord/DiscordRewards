@@ -1,22 +1,14 @@
 package eu.mcdb.discordrewards;
 
-import java.util.UUID;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
+import org.spicord.api.services.linking.LinkData;
 
-@AllArgsConstructor
-public class Account {
+public class Account extends LinkData {
 
-    @Getter
-    private Long id;
-    @Getter
-    private String name;
-
-    private String uuid;
     private int message_count;
 
-    public UUID getUniqueId() {
-        return UUID.fromString(uuid);
+    public Account(Long id, String name, String uuid, int message_count) {
+        super(id, name, uuid);
+        this.message_count = message_count;
     }
 
     public int getMessageCount() {

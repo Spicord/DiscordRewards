@@ -1,8 +1,8 @@
 package eu.mcdb.discordrewards;
 
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.events.guild.member.GuildMemberJoinEvent;
-import net.dv8tion.jda.core.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 
 public class DiscordJoinListener extends ListenerAdapter {
 

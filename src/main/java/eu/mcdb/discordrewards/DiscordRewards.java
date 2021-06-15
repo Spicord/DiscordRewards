@@ -1,51 +1,47 @@
 package eu.mcdb.discordrewards;
 
-import java.io.File;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 import java.util.logging.Logger;
 import eu.mcdb.discordrewards.config.Config;
-import eu.mcdb.discordrewards.config.Config.Discord;
-import eu.mcdb.discordrewards.config.Config.Rewards;
-import eu.mcdb.discordrewards.config.Config.Rewards.Reward;
-import eu.mcdb.spicord.api.addon.SimpleAddon;
-import eu.mcdb.spicord.bot.DiscordBot;
-import eu.mcdb.spicord.bot.command.DiscordBotCommand;
-import eu.mcdb.spicord.embed.Embed;
-import eu.mcdb.spicord.embed.EmbedLoader;
-import eu.mcdb.spicord.embed.EmbedSender;
+import eu.mcdb.discordrewards.config.Discord;
+import eu.mcdb.discordrewards.config.Rewards;
+import org.spicord.api.addon.SimpleAddon;
+import org.spicord.bot.DiscordBot;
+import org.spicord.bot.command.DiscordBotCommand;
+import org.spicord.embed.Embed;
+import org.spicord.embed.EmbedLoader;
 import eu.mcdb.universal.Server;
 import eu.mcdb.universal.player.UniversalPlayer;
-import net.dv8tion.jda.core.Permission;
-import net.dv8tion.jda.core.entities.ChannelType;
-import net.dv8tion.jda.core.entities.Guild;
-import net.dv8tion.jda.core.entities.Member;
-import net.dv8tion.jda.core.entities.Message;
-import net.dv8tion.jda.core.entities.Role;
-import net.dv8tion.jda.core.entities.TextChannel;
-import net.dv8tion.jda.core.entities.User;
-import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.core.exceptions.HierarchyException;
-import net.dv8tion.jda.core.exceptions.InsufficientPermissionException;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.exceptions.HierarchyException;
+import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
 
 public class DiscordRewards extends SimpleAddon {
 
     private Logger logger;
-    private LinkManager lm;
+    private LinkManager linkManager;
     private Config config;
+    private EmbedLoader embedLoader;
+
     private TextChannel channel;
     private Long channelId;
-    private EmbedLoader embedLoader;
     private String prefix;
 
     public DiscordRewards(LinkManager linkManager, Config config) {
-        super("DiscordRewards", "rewards", "OopsieWoopsie", new String[] { "instructions" });
+        super("DiscordRewards", "rewards", "Sheidy", new String[] { "instructions" });
         this.logger = config.getLogger();
-        this.lm = linkManager;
+        this.linkManager = linkManager;
         this.config = config;
-        File embedFolder = new File(config.getDataFolder(), "embed");
         this.embedLoader = new EmbedLoader();
-        this.embedLoader.load(embedFolder);
     }
 
     @Override
@@ -54,7 +50,7 @@ public class DiscordRewards extends SimpleAddon {
         this.channel = bot.getJda().getTextChannelById(channelId);
         this.prefix = bot.getCommandPrefix();
 
-        bot.getJda().addEventListener(new DiscordJoinListener(lm, this));
+        bot.getJda().addEventListener(new DiscordJoinListener(linkManager, this));
 
         if (channel == null) {
             logger.warning("===================================================");
@@ -62,6 +58,21 @@ public class DiscordRewards extends SimpleAddon {
             logger.warning("The linking system was disabled.");
             logger.warning("===================================================");
         }
+    }
+
+    @Override
+    public void onShutdown(DiscordBot bot) {
+        this.channelId = null;
+        this.channel   = null;
+        this.prefix    = null;
+    }
+
+    @Override
+    public void onDisable() {
+        this.logger      = null;
+        this.linkManager = null;
+        this.config      = null;
+        this.embedLoader = null;
     }
 
     @Override
@@ -88,7 +99,7 @@ public class DiscordRewards extends SimpleAddon {
             return;
 
         long id = author.getIdLong();
-        Account acc = lm.getAccount(id);
+        Account acc = linkManager.getAccount(id);
 
         if (event.getChannel().getIdLong() == channelId) {
 
@@ -105,9 +116,9 @@ public class DiscordRewards extends SimpleAddon {
 
             if (acc != null) return; // already verified
 
-            if (lm.isValidCode(code)) {
+            if (linkManager.isValidCode(code)) {
                 Discord dc = config.getDiscord();
-                Account account = lm.link(author.getIdLong(), code);
+                Account account = linkManager.link(author.getIdLong(), code);
 
                 Function<String, String> placeholders = str -> str.replace("{player_name}", account.getName());
                 Server server = Server.getInstance();
@@ -127,15 +138,14 @@ public class DiscordRewards extends SimpleAddon {
                     String str = embed.toString()
                             .replace("%player%", account.getName());
 
-                    EmbedSender.prepare(channel, Embed.fromJson(str)).complete()
+                    Embed.fromJson(str).sendToChannel(channel)
                             .delete().queueAfter(10, TimeUnit.SECONDS);
                 }
                 renameUser(member, account.getName());
                 addRole(member);
             } else {
                 Embed embed = embedLoader.getEmbedByName("invalid-code");
-                EmbedSender.prepare(channel, embed).complete()
-                        .delete().queueAfter(10, TimeUnit.SECONDS);
+                embed.sendToChannel(channel).delete().queueAfter(10, TimeUnit.SECONDS);
             }
         } else if (config.isRewardEnabled()) {
             if (acc != null) {
@@ -145,12 +155,12 @@ public class DiscordRewards extends SimpleAddon {
 
                 if (rw.appliesForReward(count)) {
                     UniversalPlayer p = Server.getInstance().getPlayer(acc.getUniqueId());
-                    Reward reward = rw.getReward(count);
+                    Rewards.Reward reward = rw.getReward(count);
 
                     if (p != null) {
-                        reward.give(acc);
+                        //rw.getManager().give(reward, p);
                     } else {
-                        rw.cache(acc, count);
+                        //rw.getManager().cache(acc, count);
                     }
 
                     if (rw.shouldSendDiscordMessage()) {
@@ -160,25 +170,25 @@ public class DiscordRewards extends SimpleAddon {
                                 .replace("{user_mention}", author.getAsMention())
                                 .replace("{amount}", String.valueOf(count)));
 
-                        EmbedSender.prepare(event.getTextChannel(), embed).queue();
+                        embed.sendToChannel(event.getTextChannel());
                     }
                 }
             }
         }
     }
 
-    protected void renameUser(Member member, String name1) {
+    protected void renameUser(Member member, String newName) {
         Discord dc = config.getDiscord();
 		Guild guild = member.getGuild();
         if (dc.shouldRenameUser()) {
-            Function<String, String> placeholders = str -> str.replace("{player_name}", name1);
+            Function<String, String> placeholders = str -> str.replace("{player_name}", newName);
             String name = placeholders.apply(dc.getNameTemplate());
             try {
-                guild.getController().setNickname(member, name).queue();
+                guild.modifyNickname(member, name).queue();
             } catch (InsufficientPermissionException e) {
-                System.out.println("[ERROR] Could't change nickname of member because the bot doesn't have permission to!");
+                logger.severe("Could't change nickname of member because the bot doesn't have permission to!");
             } catch (HierarchyException e) {
-                System.out.println("[ERROR] The bot can't modify the nickname of members with higher hierarchy!");
+                logger.severe("The bot can't modify the nickname of members with higher hierarchy!");
             }
         }
 	}
@@ -189,14 +199,14 @@ public class DiscordRewards extends SimpleAddon {
         if (dc.shouldAddRole()) {
             Role role = dc.getVerifiedRole(guild);
             if (role == null) {
-                System.out.println("[ERROR] Could't add role to user '"+member.getAsMention()+"' (role not found!)");
+                logger.severe("Could't add role to user '"+member.getAsMention()+"' (role not found!)");
             } else {
                 try {
-                    guild.getController().addRolesToMember(member, role).queue();
+                    guild.addRoleToMember(member, role).queue();
                 } catch (InsufficientPermissionException e) {
-                    System.out.println("[ERROR] Could't add role to member because the bot doesn't have permission to!");
+                    logger.severe("Could't add role to member because the bot doesn't have permission to!");
                 } catch (HierarchyException e) {
-                    System.out.println("[ERROR] The bot can't modify roles of members with higher hierarchy!");
+                    logger.severe("The bot can't modify roles of members with higher hierarchy!");
                 }
             }
         }
