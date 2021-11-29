@@ -3,6 +3,7 @@ main: eu.mcdb.discordrewards.bukkit.BukkitPlugin
 author: Sheidy
 version: ${project.version}
 depend: [Spicord]
+api-version: 1.13
 commands:
   link:
     aliases: [discord]
