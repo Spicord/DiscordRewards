@@ -54,8 +54,8 @@ public class DiscordRewards extends SimpleAddon {
 
         if (channel == null) {
             logger.warning("===================================================");
-            logger.warning("Channel with id '" + channelId + "' wasn't found.");
-            logger.warning("The linking system was disabled.");
+            logger.warning("Channel with id '" + channelId + "' was not found.");
+            logger.warning("The linking system is now disabled.");
             logger.warning("===================================================");
         }
     }
