@@ -3,6 +3,7 @@ package eu.mcdb.discordrewards;
 import java.util.UUID;
 
 import eu.mcdb.discordrewards.config.RewardManager;
+import eu.mcdb.discordrewards.config.RewardManager.Reward;
 import eu.mcdb.universal.player.UniversalPlayer;
 
 public class ServerJoinListener {
@@ -43,7 +44,10 @@ public class ServerJoinListener {
                     return;
                 }
 
-                rewards.getCachedRewards(uuid).forEach(r -> rewards.give(r, player));
+                for (Reward r : rewards.getCachedRewards(uuid).toArray(Reward[]::new)) {
+                    rewards.give(r, player);
+                }
+
                 rewards.cleanCache(uuid);
             }
         }
