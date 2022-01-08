@@ -12,6 +12,7 @@ import eu.mcdb.discordrewards.DiscordRewards;
 import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.discordrewards.api.LinkingServiceImpl;
 import eu.mcdb.discordrewards.command.LinkCommand;
+import eu.mcdb.discordrewards.command.UnLinkCommand;
 import eu.mcdb.discordrewards.config.Config;
 import net.md_5.bungee.api.plugin.Plugin;
 
@@ -43,6 +44,7 @@ public class BungeePlugin extends Plugin {
         });
 
         new LinkCommand(linkManager, config).register(this);
+        new UnLinkCommand(linkManager).register(this);
 
         getProxy().getScheduler().schedule(this, () -> linkManager.save(), 5, 5, TimeUnit.MINUTES);
     }
