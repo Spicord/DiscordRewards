@@ -48,6 +48,9 @@ reward:
 ###===---
 already-verified-message: '{prefix} &cYou have already verified your account!'
 
-
+###===---
+# 'Click to copy' text when the mouse is over the verification code on the chat message.
+###===---
+click-to-copy: 'Click to copy'
 
 # Enjoy! ^^
