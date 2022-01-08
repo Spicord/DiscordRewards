@@ -11,6 +11,7 @@ import eu.mcdb.discordrewards.DiscordRewards;
 import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.discordrewards.api.LinkingServiceImpl;
 import eu.mcdb.discordrewards.command.LinkCommand;
+import eu.mcdb.discordrewards.command.UnLinkCommand;
 import eu.mcdb.discordrewards.config.Config;
 import org.spicord.embed.EmbedLoader;
 
@@ -45,7 +46,8 @@ public class BukkitPlugin extends JavaPlugin {
             });
 		}
 
-		new LinkCommand(linkManager, config).register(this);
+        new LinkCommand(linkManager, config).register(this);
+        new UnLinkCommand(linkManager).register(this);
 
         long fiveMinInTicks = (60 * 5) * 20; // 6000 ticks
         getServer().getScheduler().runTaskTimer(this, () -> linkManager.save(), fiveMinInTicks, fiveMinInTicks);
