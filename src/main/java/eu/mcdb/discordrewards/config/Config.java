@@ -13,11 +13,12 @@ import lombok.Getter;
 public class Config {
 
     @Getter private String prefix;
-    private List<String> verifyInstructions;
+    @Getter private List<String> verifyInstructions;
     @Getter private boolean broadcastEnabled;
     @Getter private List<String> broadcastMessage;
     @Getter private boolean rewardEnabled;
     @Getter private List<String> rewardCommands;
+    @Getter private String clickToCopyText;
     @Getter private String alreadyVerifiedMessage;
     @Getter private Discord discord;
     @Getter private RewardManager rewards;
@@ -47,6 +48,8 @@ public class Config {
         this.broadcastMessage = broadcastMessage.stream().map(filter).collect(Collectors.toList());
         this.rewardEnabled = config.getBoolean("reward.enabled");
         this.rewardCommands = config.getStringList("reward.commands");
+        this.clickToCopyText = config.getString("click-to-copy");
+        if (clickToCopyText == null) { clickToCopyText = "Click to copy"; }
         this.alreadyVerifiedMessage = config.getString("already-verified-message");
         this.alreadyVerifiedMessage = alreadyVerifiedMessage.replace("{prefix}", prefix);
         this.alreadyVerifiedMessage = ChatColor.translateAlternateColorCodes('&', alreadyVerifiedMessage);

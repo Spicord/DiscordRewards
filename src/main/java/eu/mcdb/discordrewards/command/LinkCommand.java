@@ -29,8 +29,14 @@ public class LinkCommand extends Command {
             } else {
                 String code = linkManager.generateCode();
 
-                for (String line : config.getVerifyInstructions(code)) {
-                    player.sendMessage(line);
+                if (player.isBukkitPlayer()) {
+                    BetterMessage.sendBukkit(player, config, (code));
+                } else if (player.isProxiedPlayer()) {
+                    BetterMessage.sendBungee(player, config, (code));
+                } else {
+                    for (String line : config.getVerifyInstructions(code)) {
+                        player.sendMessage(line);
+                    }
                 }
 
                 linkManager.addPendingPlayer(player, code);
