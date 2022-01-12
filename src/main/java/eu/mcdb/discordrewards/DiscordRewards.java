@@ -50,6 +50,10 @@ public class DiscordRewards extends SimpleAddon {
         this.channel = bot.getJda().getTextChannelById(channelId);
         this.prefix = bot.getCommandPrefix();
 
+        this.linkManager.setBot(bot);
+        this.linkManager.setChannel(channel);
+        this.linkManager.setDiscord(config.getDiscord());
+
         bot.getJda().addEventListener(new DiscordJoinListener(linkManager, this));
 
         if (channel == null) {

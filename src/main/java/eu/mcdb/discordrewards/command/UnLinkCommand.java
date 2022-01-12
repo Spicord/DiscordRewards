@@ -9,6 +9,9 @@ import eu.mcdb.universal.command.UniversalCommandSender;
 import eu.mcdb.universal.command.api.Command;
 import eu.mcdb.universal.command.api.CommandParameter;
 import eu.mcdb.universal.command.api.CommandParameters;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Role;
 
 public class UnLinkCommand extends Command {
 
@@ -33,6 +36,17 @@ public class UnLinkCommand extends Command {
             if (account.getName().equals(mcName)) {
                 iterator.remove();
                 linkManager.save();
+
+                if (linkManager.getChannel() != null) {
+                    final Guild guild = linkManager.getChannel().getGuild();
+                    final Member member = guild.getMemberById(account.getId());
+                    final Role role = linkManager.getDiscord().getVerifiedRole(guild);
+
+                    if (member != null && role != null) {
+                        guild.removeRoleFromMember(member, role).queue();
+                    }
+                }
+
                 sender.sendMessage("Unlinked account of player " + mcName);
                 return true;
             }
