@@ -15,7 +15,7 @@ import eu.mcdb.discordrewards.command.UnLinkCommand;
 import eu.mcdb.discordrewards.config.Config;
 import org.spicord.embed.EmbedLoader;
 
-public class BukkitPlugin extends JavaPlugin {
+public class DiscordRewardsBukkit extends JavaPlugin {
 
     private LinkManager linkManager;
     private Config config;

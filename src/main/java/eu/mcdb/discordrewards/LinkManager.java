@@ -9,10 +9,16 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.UUID;
+
+import org.spicord.bot.DiscordBot;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+
+import eu.mcdb.discordrewards.config.Discord;
 import eu.mcdb.discordrewards.util.RandomUtils;
 import eu.mcdb.universal.player.UniversalPlayer;
+import net.dv8tion.jda.api.entities.TextChannel;
 
 public class LinkManager {
 
@@ -21,6 +27,9 @@ public class LinkManager {
     private final Map<Long, Account> accounts;
     private final File linkedFile;
     private final Map<UUID, String> uuidNameCache;
+    private DiscordBot bot;
+    private TextChannel channel;
+    private Discord discord;
 
     public LinkManager(File linkedFile) {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
@@ -135,5 +144,29 @@ public class LinkManager {
 
     public Map<UUID, String> getUuidNameCache() {
         return uuidNameCache;
+    }
+
+    public void setBot(DiscordBot bot) {
+        this.bot = bot;
+    }
+
+    public DiscordBot getBot() {
+        return bot;
+    }
+
+    public void setChannel(TextChannel channel) {
+        this.channel = channel;
+    }
+
+    public TextChannel getChannel() {
+        return channel;
+    }
+
+    public void setDiscord(Discord discord) {
+        this.discord = discord;
+    }
+
+    public Discord getDiscord() {
+        return discord;
     }
 }

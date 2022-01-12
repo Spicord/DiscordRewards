@@ -16,7 +16,7 @@ import eu.mcdb.discordrewards.command.UnLinkCommand;
 import eu.mcdb.discordrewards.config.Config;
 import net.md_5.bungee.api.plugin.Plugin;
 
-public class BungeePlugin extends Plugin {
+public class DiscordRewardsBungee extends Plugin {
 
     private LinkManager linkManager;
     private Config config;
