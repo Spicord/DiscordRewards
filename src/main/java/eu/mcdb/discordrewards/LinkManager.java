@@ -18,7 +18,7 @@ import com.google.gson.GsonBuilder;
 import eu.mcdb.discordrewards.config.Discord;
 import eu.mcdb.discordrewards.util.RandomUtils;
 import eu.mcdb.universal.player.UniversalPlayer;
-import net.dv8tion.jda.api.entities.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 public class LinkManager {
 
@@ -28,7 +28,7 @@ public class LinkManager {
     private final File linkedFile;
     private final Map<UUID, String> uuidNameCache;
     private DiscordBot bot;
-    private TextChannel channel;
+    private GuildMessageChannel channel;
     private Discord discord;
 
     public LinkManager(File linkedFile) {
@@ -154,11 +154,11 @@ public class LinkManager {
         return bot;
     }
 
-    public void setChannel(TextChannel channel) {
+    public void setChannel(GuildMessageChannel channel) {
         this.channel = channel;
     }
 
-    public TextChannel getChannel() {
+    public GuildMessageChannel getChannel() {
         return channel;
     }
 

@@ -14,13 +14,13 @@ import org.spicord.embed.EmbedLoader;
 import eu.mcdb.universal.Server;
 import eu.mcdb.universal.player.UniversalPlayer;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.Role;
-import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
@@ -32,7 +32,7 @@ public class DiscordRewards extends SimpleAddon {
     private Config config;
     private EmbedLoader embedLoader;
 
-    private TextChannel channel;
+    private GuildMessageChannel channel;
     private Long channelId;
     private String prefix;
 
@@ -174,7 +174,7 @@ public class DiscordRewards extends SimpleAddon {
                                 .replace("{user_mention}", author.getAsMention())
                                 .replace("{amount}", String.valueOf(count)));
 
-                        embed.sendToChannel(event.getTextChannel());
+                        embed.sendToChannel(event.getGuildChannel());
                     }
                 }
             }
