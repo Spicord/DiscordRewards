@@ -13,6 +13,8 @@ import eu.mcdb.discordrewards.api.LinkingServiceImpl;
 import eu.mcdb.discordrewards.command.LinkCommand;
 import eu.mcdb.discordrewards.command.UnLinkCommand;
 import eu.mcdb.discordrewards.config.Config;
+import me.clip.placeholderapi.PlaceholderAPI;
+
 import org.spicord.embed.EmbedLoader;
 
 public class DiscordRewardsBukkit extends JavaPlugin {
@@ -24,7 +26,12 @@ public class DiscordRewardsBukkit extends JavaPlugin {
 
     @Override
 	public void onEnable() {
-        saveDefaultConfig();
+    	if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+        	CodePlaceholderImpl placeholderImpl = new CodePlaceholderImpl(this);
+        	placeholderImpl.registerNow();
+    	}
+
+    	saveDefaultConfig();
         saveResource("discord.yml", false);
         saveResource("rewards.yml", false);
 

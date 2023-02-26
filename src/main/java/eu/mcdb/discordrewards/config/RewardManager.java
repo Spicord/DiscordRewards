@@ -115,7 +115,7 @@ public class RewardManager {
     public void give(Reward reward, UniversalPlayer player) {
         for (String command : reward.commands) {
             Server.getInstance().dispatchCommand(
-                command.replace("{player_name}", player.getName())
+                command.replace("{player_name}", player.getName()).replace("{message_count}", String.valueOf(reward.requiredMessageCount))
             );
         }
         getCachedData(player.getUniqueId()).remove(reward.requiredMessageCount);

@@ -5,7 +5,7 @@
 
     <groupId>eu.mcdb</groupId>
     <artifactId>discord-rewards</artifactId>
-    <version>1.2.1</version>
+    <version>1.3.0</version>
 
     <name>DiscordRewards</name>
 
@@ -26,6 +26,10 @@
             <id>jcenter</id>
             <url>https://jcenter.bintray.com</url>
         </repository>
+        <repository>
+            <id>placeholderapi</id>
+            <url>https://repo.extendedclip.com/content/repositories/placeholderapi/</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -44,7 +48,13 @@
         <dependency>
             <groupId>org.spicord</groupId>
             <artifactId>spicord-common</artifactId>
-            <version>4.0.0</version>
+            <version>5.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>me.clip</groupId>
+            <artifactId>placeholderapi</artifactId>
+            <version>2.10.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -54,9 +64,9 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>org.spicord</groupId>
+            <groupId>net.dv8tion</groupId>
             <artifactId>JDA</artifactId>
-            <version>4.2.1</version>
+            <version>5.0.0-beta.4</version>
             <scope>provided</scope>
         </dependency>
     </dependencies>
