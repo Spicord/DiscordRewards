@@ -5,17 +5,17 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
+
 import org.bukkit.plugin.java.JavaPlugin;
 import org.spicord.SpicordLoader;
+import org.spicord.embed.EmbedLoader;
+
 import eu.mcdb.discordrewards.DiscordRewards;
 import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.discordrewards.api.LinkingServiceImpl;
 import eu.mcdb.discordrewards.command.LinkCommand;
 import eu.mcdb.discordrewards.command.UnLinkCommand;
 import eu.mcdb.discordrewards.config.Config;
-import me.clip.placeholderapi.PlaceholderAPI;
-
-import org.spicord.embed.EmbedLoader;
 
 public class DiscordRewardsBukkit extends JavaPlugin {
 
@@ -23,11 +23,12 @@ public class DiscordRewardsBukkit extends JavaPlugin {
     private Config config;
     private boolean firstRun = true;
     private LinkingServiceImpl ls;
+    private DiscordRewards addon;
 
     @Override
 	public void onEnable() {
     	if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
-        	CodePlaceholderImpl placeholderImpl = new CodePlaceholderImpl(this);
+        	PlaceholdersImpl placeholderImpl = new PlaceholdersImpl(this);
         	placeholderImpl.registerNow();
     	}
 
@@ -45,7 +46,7 @@ public class DiscordRewardsBukkit extends JavaPlugin {
 		if (firstRun) {
 		    firstRun = false;
             SpicordLoader.addStartupListener(s -> {
-                s.getAddonManager().registerAddon(new DiscordRewards(linkManager, config, embedLoader));
+                s.getAddonManager().registerAddon(addon = new DiscordRewards(linkManager, config, embedLoader));
                 getServer().getPluginManager().registerEvents(new BukkitJoinListener(linkManager, config.getRewards()), this);
 
                 this.ls = new LinkingServiceImpl(linkManager, s);
@@ -58,6 +59,10 @@ public class DiscordRewardsBukkit extends JavaPlugin {
 
         long fiveMinInTicks = (60 * 5) * 20; // 6000 ticks
         getServer().getScheduler().runTaskTimer(this, () -> linkManager.save(), fiveMinInTicks, fiveMinInTicks);
+    }
+
+    public DiscordRewards getAddon() {
+        return addon;
     }
 
     @Override
