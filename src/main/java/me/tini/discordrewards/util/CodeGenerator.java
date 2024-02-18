@@ -1,14 +1,16 @@
-package eu.mcdb.discordrewards.util;
+package me.tini.discordrewards.util;
 
 import java.security.SecureRandom;
 import java.util.UUID;
 
-public class RandomUtils {
+public class CodeGenerator {
 
     private final static SecureRandom random = new SecureRandom();
 
-    public static String randomString(int length, String seed) {
+    public static String generateCode(int length) {
         if (length < 1) throw new IllegalArgumentException();
+
+        String seed = UUID.randomUUID().toString().replace("-", "").toUpperCase();
 
         StringBuilder sb = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
@@ -20,10 +22,5 @@ public class RandomUtils {
         }
 
         return sb.toString();
-    }
-
-    public static String randomString(int length) {
-        String seed = UUID.randomUUID().toString().replace("-", "").toUpperCase();
-        return randomString(length, seed);
     }
 }

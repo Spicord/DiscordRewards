@@ -1,12 +1,12 @@
-package eu.mcdb.discordrewards;
+package me.tini.discordrewards.linking;
 
 import org.spicord.api.services.linking.LinkData;
 
-public class Account extends LinkData {
+public class LinkedAccount extends LinkData {
 
     private int message_count;
 
-    public Account(Long id, String name, String uuid, int message_count) {
+    public LinkedAccount(Long id, String name, String uuid, int message_count) {
         super(id, name, uuid);
         this.message_count = message_count;
     }

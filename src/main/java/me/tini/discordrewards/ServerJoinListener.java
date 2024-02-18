@@ -1,10 +1,12 @@
-package eu.mcdb.discordrewards;
+package me.tini.discordrewards;
 
 import java.util.UUID;
 
-import eu.mcdb.discordrewards.config.RewardManager;
-import eu.mcdb.discordrewards.config.RewardManager.Reward;
 import eu.mcdb.universal.player.UniversalPlayer;
+import me.tini.discordrewards.config.RewardManager;
+import me.tini.discordrewards.config.RewardManager.Reward;
+import me.tini.discordrewards.linking.LinkedAccount;
+import me.tini.discordrewards.linking.LinkManager;
 
 public class ServerJoinListener {
 
@@ -16,19 +18,18 @@ public class ServerJoinListener {
         this.rewards = rewards;
     }
 
-    public void onPlayerJoin(ServerJoinEvent event) {
-        UniversalPlayer player = event.getPlayer();
+    public void onPlayerJoin(UniversalPlayer player, String serverName, boolean isProxy) {
         UUID uuid = player.getUniqueId();
 
-        Account acc = linkManager.getAccount(uuid);
+        LinkedAccount acc = linkManager.getAccount(uuid);
 
         if (acc != null) {
             if (!player.getName().equals(acc.getName())) {
-                Account newAccount = new Account(
-                        acc.getId(),
-                        player.getName(), // new name
-                        uuid.toString(),
-                        acc.getMessageCount()
+                LinkedAccount newAccount = new LinkedAccount(
+                    acc.getId(),
+                    player.getName(), // new name
+                    uuid.toString(),
+                    acc.getMessageCount()
                 );
 
                 linkManager.getAccounts().remove(acc.getId());
@@ -39,7 +40,7 @@ public class ServerJoinListener {
             }
 
             if (rewards.isCached(uuid)) {
-                if (event.isProxy() && event.getServerName() == null) {
+                if (isProxy && serverName == null) {
                     System.out.println("Can't find the player server, reward not given to: " + player.getName());
                     return;
                 }

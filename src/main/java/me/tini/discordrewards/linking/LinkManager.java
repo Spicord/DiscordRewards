@@ -1,4 +1,4 @@
-package eu.mcdb.discordrewards;
+package me.tini.discordrewards.linking;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,16 +15,15 @@ import org.spicord.bot.DiscordBot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import eu.mcdb.discordrewards.config.Discord;
-import eu.mcdb.discordrewards.util.RandomUtils;
-import eu.mcdb.universal.player.UniversalPlayer;
+import me.tini.discordrewards.config.Discord;
+import me.tini.discordrewards.util.CodeGenerator;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 
 public class LinkManager {
 
     private final Gson gson;
     private final Map<UUID, String> pending;
-    private final Map<Long, Account> accounts;
+    private final Map<Long, LinkedAccount> accounts;
     private final File linkedFile;
     private final Map<UUID, String> uuidNameCache;
     private DiscordBot bot;
@@ -34,20 +33,20 @@ public class LinkManager {
     public LinkManager(File linkedFile) {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
         this.pending = new HashMap<UUID, String>();
-        this.accounts = new HashMap<Long, Account>();
+        this.accounts = new HashMap<Long, LinkedAccount>();
         this.uuidNameCache = new HashMap<UUID, String>();
 
         this.linkedFile = linkedFile;
 
         try {
             if (linkedFile.exists()) {
-                Account[] linked = gson.fromJson(new FileReader(linkedFile), Account[].class);
+                LinkedAccount[] linked = gson.fromJson(new FileReader(linkedFile), LinkedAccount[].class);
 
                 if (linked == null || linked.length == 0) {
                     return;
                 }
 
-                for (Account account : linked) {
+                for (LinkedAccount account : linked) {
                     accounts.put(account.getId(), account);
                 }
             }
@@ -56,40 +55,38 @@ public class LinkManager {
         }
     }
 
-    public boolean isPending(UniversalPlayer player) {
-        return pending.containsKey(player.getUniqueId());
+    public boolean isPending(UUID uuid) {
+        return pending.containsKey(uuid);
     }
 
     public String generateCode() {
         String code;
         do {
-            code = RandomUtils.randomString(8);
+            code = CodeGenerator.generateCode(8);
         } while (pending.values().contains(code));
         return code;
     }
 
-    public Account getAccount(Long id) {
+    public LinkedAccount getAccount(Long id) {
         return accounts.get(id);
     }
 
-    public Account getAccount(UUID uuid) {
+    public LinkedAccount getAccount(UUID uuid) {
         return accounts.values().stream()
                 .filter(account -> account.getUniqueId().equals(uuid))
                 .findFirst()
                 .orElse(null);
     }
 
-    public boolean isVerified(UniversalPlayer player) {
-        UUID uuid = player.getUniqueId();
-
+    public boolean isVerified(UUID uuid) {
         return accounts.values().stream()
-                .map(Account::getUniqueId)
+                .map(LinkedAccount::getUniqueId)
                 .anyMatch(uuid::equals);
     }
 
-    public void addPendingPlayer(UniversalPlayer player, String code) {
-        pending.put(player.getUniqueId(), code);
-        uuidNameCache.put(player.getUniqueId(), player.getName());
+    public void addPendingPlayer(UUID uuid, String name, String code) {
+        pending.put(uuid, code);
+        uuidNameCache.put(uuid, name);
     }
 
     public void save() {
@@ -109,13 +106,13 @@ public class LinkManager {
         return pending.values().contains(code);
     }
 
-    public Account link(Long discordId, String code) {
+    public LinkedAccount link(Long discordId, String code) {
         for (Entry<UUID, String> entry : pending.entrySet()) {
             UUID uuid = entry.getKey();
             String validCode = entry.getValue();
 
             if (validCode.equals(code)) {
-                Account acc = new Account(discordId, getName(uuid), uuid.toString(), 0);
+                LinkedAccount acc = new LinkedAccount(discordId, getName(uuid), uuid.toString(), 0);
                 accounts.put(discordId, acc);
 
                 // cleanup
@@ -138,7 +135,7 @@ public class LinkManager {
         return pending;
     }
 
-    public Map<Long, Account> getAccounts() {
+    public Map<Long, LinkedAccount> getAccounts() {
         return accounts;
     }
 
