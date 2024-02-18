@@ -1,4 +1,4 @@
-package eu.mcdb.discordrewards.config;
+package me.tini.discordrewards.config;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -15,10 +15,11 @@ import java.util.stream.Stream;
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
 import com.google.gson.reflect.TypeToken;
-import eu.mcdb.discordrewards.Account;
+
 import eu.mcdb.universal.Server;
 import eu.mcdb.universal.config.YamlConfiguration;
 import eu.mcdb.universal.player.UniversalPlayer;
+import me.tini.discordrewards.linking.LinkedAccount;
 
 public class RewardManager {
 
@@ -107,7 +108,7 @@ public class RewardManager {
         return cached.containsKey(uuid);
     }
 
-    public void cache(Account acc, int msgcount) {
+    public void cache(LinkedAccount acc, int msgcount) {
         getCachedData(acc.getUniqueId()).add(msgcount);
         saveCached();
     }

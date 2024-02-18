@@ -1,10 +1,10 @@
-package eu.mcdb.discordrewards.command;
+package me.tini.discordrewards.command;
 
-import eu.mcdb.discordrewards.LinkManager;
-import eu.mcdb.discordrewards.config.Config;
 import eu.mcdb.universal.command.UniversalCommandSender;
 import eu.mcdb.universal.command.api.Command;
 import eu.mcdb.universal.player.UniversalPlayer;
+import me.tini.discordrewards.config.Config;
+import me.tini.discordrewards.linking.LinkManager;
 
 public class LinkCommand extends Command {
 
@@ -24,7 +24,7 @@ public class LinkCommand extends Command {
         if (sender.isPlayer()) {
             UniversalPlayer player = sender.getPlayer();
 
-            if (linkManager.isVerified(player)) {
+            if (linkManager.isVerified(player.getUniqueId())) {
                 player.sendMessage(config.getAlreadyVerifiedMessage());
             } else {
                 String code = linkManager.generateCode();
@@ -39,7 +39,7 @@ public class LinkCommand extends Command {
                     }
                 }
 
-                linkManager.addPendingPlayer(player, code);
+                linkManager.addPendingPlayer(player.getUniqueId(), player.getName(), code);
             }
         } else {
             sender.sendMessage("&cYou need to be a player to run this command!");

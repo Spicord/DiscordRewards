@@ -1,4 +1,4 @@
-package eu.mcdb.discordrewards.config;
+package me.tini.discordrewards.config;
 
 import java.awt.Color;
 import java.util.List;

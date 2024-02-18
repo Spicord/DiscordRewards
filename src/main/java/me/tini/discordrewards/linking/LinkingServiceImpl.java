@@ -1,17 +1,17 @@
-package eu.mcdb.discordrewards.api;
+package me.tini.discordrewards.linking;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.UUID;
+
 import org.spicord.Spicord;
 import org.spicord.api.services.ServiceManager;
 import org.spicord.api.services.linking.LinkData;
 import org.spicord.api.services.linking.LinkingService;
 import org.spicord.api.services.linking.PendingLinkData;
-import eu.mcdb.discordrewards.Account;
-import eu.mcdb.discordrewards.LinkManager;
+
 import eu.mcdb.universal.player.UniversalPlayer;
 
 public class LinkingServiceImpl implements LinkingService {
@@ -39,7 +39,7 @@ public class LinkingServiceImpl implements LinkingService {
 
     @Override
     public boolean isPending(UniversalPlayer player) {
-        return lm.isPending(player);
+        return lm.isPending(player.getUniqueId());
     }
 
     @Override
@@ -49,7 +49,7 @@ public class LinkingServiceImpl implements LinkingService {
 
     @Override
     public LinkData createLink(PendingLinkData data, long id) {
-        Account acc = new Account(id, data.getName(), data.getUniqueId().toString(), 0);
+        LinkedAccount acc = new LinkedAccount(id, data.getName(), data.getUniqueId().toString(), 0);
         lm.getAccounts().put(id, acc);
         lm.save();
         lm.getPending().remove(data.getUniqueId());
@@ -79,7 +79,7 @@ public class LinkingServiceImpl implements LinkingService {
 
     @Override
     public LinkData[] getLinked() {
-        Collection<Account> acc = lm.getAccounts().values();
+        Collection<LinkedAccount> acc = lm.getAccounts().values();
         return acc.toArray(new LinkData[acc.size()]);
     }
 

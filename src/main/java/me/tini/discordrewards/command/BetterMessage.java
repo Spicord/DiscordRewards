@@ -1,8 +1,8 @@
-package eu.mcdb.discordrewards.command;
+package me.tini.discordrewards.command;
 
-import eu.mcdb.discordrewards.config.Config;
 import eu.mcdb.universal.player.UniversalPlayer;
 import eu.mcdb.util.chat.ChatColor;
+import me.tini.discordrewards.config.Config;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.ComponentBuilder;
 import net.md_5.bungee.api.chat.HoverEvent;

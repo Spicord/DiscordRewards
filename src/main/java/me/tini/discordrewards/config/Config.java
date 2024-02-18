@@ -1,4 +1,4 @@
-package eu.mcdb.discordrewards.config;
+package me.tini.discordrewards.config;
 
 import java.io.File;
 import java.util.List;
@@ -9,6 +9,7 @@ import eu.mcdb.universal.Server;
 import eu.mcdb.universal.config.YamlConfiguration;
 import eu.mcdb.util.chat.ChatColor;
 import lombok.Getter;
+import me.tini.discordrewards.DiscordRewards;
 
 public class Config {
 
@@ -26,9 +27,9 @@ public class Config {
     @Getter private final File dataFolder;
     @Getter private Logger logger;
 
-    public Config(File dataFolder, Logger logger) {
-        this.dataFolder = dataFolder;
-        this.logger = logger;
+    public Config(DiscordRewards addon) {
+        this.dataFolder = addon.getDataFolder();
+        this.logger = addon.getLogger();
 
         YamlConfiguration config = YamlConfiguration.load(new File(dataFolder, "config.yml"));
         YamlConfiguration discord = YamlConfiguration.load(new File(dataFolder, "discord.yml"));

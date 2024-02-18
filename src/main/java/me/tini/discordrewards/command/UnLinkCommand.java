@@ -1,14 +1,14 @@
-package eu.mcdb.discordrewards.command;
+package me.tini.discordrewards.command;
 
 import java.util.Collection;
 import java.util.Iterator;
 
-import eu.mcdb.discordrewards.Account;
-import eu.mcdb.discordrewards.LinkManager;
 import eu.mcdb.universal.command.UniversalCommandSender;
 import eu.mcdb.universal.command.api.Command;
 import eu.mcdb.universal.command.api.CommandParameter;
 import eu.mcdb.universal.command.api.CommandParameters;
+import me.tini.discordrewards.linking.LinkedAccount;
+import me.tini.discordrewards.linking.LinkManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -29,10 +29,10 @@ public class UnLinkCommand extends Command {
     public boolean handle(UniversalCommandSender sender, CommandParameters parameters) {
         String mcName = parameters.getValue("name");
 
-        Collection<Account> accounts = linkManager.getAccounts().values();
-        Iterator<Account> iterator = accounts.iterator();
+        Collection<LinkedAccount> accounts = linkManager.getAccounts().values();
+        Iterator<LinkedAccount> iterator = accounts.iterator();
         while (iterator.hasNext()) {
-            Account account = iterator.next();
+            LinkedAccount account = iterator.next();
             if (account.getName().equals(mcName)) {
                 iterator.remove();
                 linkManager.save();
