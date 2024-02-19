@@ -19,7 +19,7 @@ public class BungeeJoinListener extends ServerJoinListener implements Listener {
     public void onPostLogin(PostLoginEvent e) {
         ProxiedPlayer player = e.getPlayer();
 
-        super.onPlayerJoin(
+        super.handlePlayerJoin(
             new UniversalPlayer(player.getName(), player.getUniqueId()),
             getServerName(player), true
         );

@@ -18,7 +18,7 @@ public class ServerJoinListener {
         this.rewards = rewards;
     }
 
-    public void onPlayerJoin(UniversalPlayer player, String serverName, boolean isProxy) {
+    public void handlePlayerJoin(UniversalPlayer player, String serverName, boolean isProxy) {
         UUID uuid = player.getUniqueId();
 
         LinkedAccount acc = linkManager.getAccount(uuid);

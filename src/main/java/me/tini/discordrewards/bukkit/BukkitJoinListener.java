@@ -20,7 +20,7 @@ public class BukkitJoinListener extends ServerJoinListener implements Listener {
     public void onPlayerJoin(PlayerJoinEvent e) {
         Player player = e.getPlayer();
 
-        super.onPlayerJoin(
+        super.handlePlayerJoin(
             new UniversalPlayer(player.getName(), player.getUniqueId()),
             null, false
         );
