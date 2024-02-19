@@ -1,0 +1,27 @@
+{
+    "loader": {
+        "name": "java_plain",
+        "version": "1.0"
+    },
+    "license": "AGPL-3.0",
+    "plugins": [
+        {
+            "id": "discordrewards",
+            "name": "DiscordRewards",
+            "version": "${project.version}",
+            "entrypoint": "me.tini.discordrewards.sponge.DiscordRewardsSponge",
+            "description": "Reward your players for being active in your Discord server",
+            "links": {
+                "homepage": "https://github.com/Spicord/DiscordRewards",
+                "source": "https://github.com/Spicord/DiscordRewards",
+                "issues": "https://github.com/Spicord/DiscordRewards/issues"
+            },
+            "contributors": [
+                {
+                    "name": "Tini",
+                    "description": "Lead Developer"
+                }
+            ]
+        }
+    ]
+}
