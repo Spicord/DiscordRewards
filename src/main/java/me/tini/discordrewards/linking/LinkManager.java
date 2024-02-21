@@ -47,7 +47,7 @@ public class LinkManager {
                 }
 
                 for (LinkedAccount account : linked) {
-                    accounts.put(account.getId(), account);
+                    accounts.put(account.getDiscordId(), account);
                 }
             }
         } catch (IOException e) {
@@ -73,14 +73,14 @@ public class LinkManager {
 
     public LinkedAccount getAccount(UUID uuid) {
         return accounts.values().stream()
-                .filter(account -> account.getUniqueId().equals(uuid))
+                .filter(account -> account.getPlayerId().equals(uuid))
                 .findFirst()
                 .orElse(null);
     }
 
     public boolean isVerified(UUID uuid) {
         return accounts.values().stream()
-                .map(LinkedAccount::getUniqueId)
+                .map(LinkedAccount::getPlayerId)
                 .anyMatch(uuid::equals);
     }
 

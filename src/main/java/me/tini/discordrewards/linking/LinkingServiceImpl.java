@@ -49,17 +49,17 @@ public class LinkingServiceImpl implements LinkingService {
 
     @Override
     public LinkData createLink(PendingLinkData data, long id) {
-        LinkedAccount acc = new LinkedAccount(id, data.getName(), data.getUniqueId().toString(), 0);
+        LinkedAccount acc = new LinkedAccount(id, data.getPlayerName(), data.getPlayerId().toString(), 0);
         lm.getAccounts().put(id, acc);
         lm.save();
-        lm.getPending().remove(data.getUniqueId());
-        return data.create(id);
+        lm.getPending().remove(data.getPlayerId());
+        return data.complete(id);
     }
 
     @Override
     public boolean removeLink(LinkData data) {
-        if (lm.getAccounts().containsKey(data.getId())) {
-            lm.getAccounts().remove(data.getId());
+        if (lm.getAccounts().containsKey(data.getDiscordId())) {
+            lm.getAccounts().remove(data.getDiscordId());
             lm.save();
             return true;
         }
@@ -68,13 +68,13 @@ public class LinkingServiceImpl implements LinkingService {
 
     @Override
     public boolean addPending(PendingLinkData data) {
-        lm.getPending().put(data.getUniqueId(), data.getName());
+        lm.getPending().put(data.getPlayerId(), data.getPlayerName());
         return true;
     }
 
     @Override
     public boolean removePending(PendingLinkData data) {
-        return lm.getPending().remove(data.getUniqueId()) != null;
+        return lm.getPending().remove(data.getPlayerId()) != null;
     }
 
     @Override
@@ -100,5 +100,15 @@ public class LinkingServiceImpl implements LinkingService {
             list.add(new PendingLinkData(e.getValue(), e.getKey()));
         }
         return list.toArray(new PendingLinkData[list.size()]);
+    }
+
+    @Override
+    public LinkData getLinkData(Long discordId) {
+        return lm.getAccount(discordId);
+    }
+
+    @Override
+    public LinkData getLinkData(UUID playerId) {
+        return lm.getAccount(playerId);
     }
 }
