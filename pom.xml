@@ -64,7 +64,7 @@
         <dependency>
             <groupId>org.spicord</groupId>
             <artifactId>spicord-common</artifactId>
-            <version>5.3.1</version>
+            <version>5.5.0</version>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -103,6 +103,14 @@
                     <include>**/*.yml</include>
                     <include>**/*.json</include>
                 </includes>
+            </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>sponge_plugins.json</include>
+                </includes>
+                <targetPath>META-INF</targetPath>
             </resource>
         </resources>
         <sourceDirectory>src/main/java</sourceDirectory>

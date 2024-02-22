@@ -1,11 +1,11 @@
 name: DiscordRewards
-main: eu.mcdb.discordrewards.bukkit.DiscordRewardsBukkit
-author: Sheidy
+main: me.tini.discordrewards.bukkit.DiscordRewardsBukkit
+author: Tini
 version: ${project.version}
-depend: [Spicord]
+depend: [ Spicord ]
 api-version: 1.13
 commands:
   link:
-    aliases: [discord]
+    aliases: [ discord ]
   unlink:
-    aliases: [unlink-discord]
+    aliases: [ unlink-discord ]

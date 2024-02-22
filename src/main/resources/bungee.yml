@@ -1,5 +1,5 @@
 name: DiscordRewards
-main: eu.mcdb.discordrewards.bungee.DiscordRewardsBungee
-author: Sheidy
+main: me.tini.discordrewards.bungee.DiscordRewardsBungee
+author: Tini
 version: ${project.version}
-depends: [Spicord]
+depends: [ Spicord ]
