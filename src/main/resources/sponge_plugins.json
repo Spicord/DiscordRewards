@@ -21,6 +21,14 @@
                     "name": "Tini",
                     "description": "Lead Developer"
                 }
+            ],
+            "dependencies": [
+                {
+                    "id": "spicord",
+                    "version": "[5.3.1,)",
+                    "load-order": "after",
+                    "optional": false
+                }
             ]
         }
     ]
