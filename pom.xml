@@ -104,6 +104,14 @@
                     <include>**/*.json</include>
                 </includes>
             </resource>
+            <resource>
+                <directory>${basedir}/src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>sponge_plugins.json</include>
+                </includes>
+                <targetPath>META-INF</targetPath>
+            </resource>
         </resources>
         <sourceDirectory>src/main/java</sourceDirectory>
     </build>
