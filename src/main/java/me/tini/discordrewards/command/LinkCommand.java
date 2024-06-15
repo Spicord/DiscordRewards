@@ -31,7 +31,7 @@ public class LinkCommand extends Command {
 
                 if (player.isBukkitPlayer()) {
                     BetterMessage.sendBukkit(player, config, (code));
-                } else if (player.isProxiedPlayer()) {
+                } else if (player.isBungeePlayer()) {
                     BetterMessage.sendBungee(player, config, (code));
                 } else {
                     for (String line : config.getVerifyInstructions(code)) {

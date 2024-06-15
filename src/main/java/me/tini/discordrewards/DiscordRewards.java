@@ -217,7 +217,7 @@ public class DiscordRewards extends SimpleAddon {
                 Discord dc = config.getDiscord();
                 LinkedAccount account = linkManager.link(author.getIdLong(), code);
 
-                Function<String, String> placeholders = str -> str.replace("{player_name}", account.getName());
+                Function<String, String> placeholders = str -> str.replace("{player_name}", account.getPlayerName());
                 Server server = Server.getInstance();
 
                 if (config.isBroadcastEnabled()) {
@@ -233,12 +233,12 @@ public class DiscordRewards extends SimpleAddon {
                 if (dc.shouldSendMessage()) {
                     Embed embed = embedLoader.getEmbedByName("completed");
                     String str = embed.toString()
-                            .replace("%player%", account.getName());
+                            .replace("%player%", account.getPlayerName());
 
                     Embed.fromJson(str).sendToChannel(channel)
                             .delete().queueAfter(10, TimeUnit.SECONDS);
                 }
-                renameUser(member, account.getName());
+                renameUser(member, account.getPlayerName());
                 addRole(member);
             } else {
                 Embed embed = embedLoader.getEmbedByName("invalid-code");
@@ -251,7 +251,7 @@ public class DiscordRewards extends SimpleAddon {
                 RewardManager rw = config.getRewards();
 
                 if (rw.appliesForReward(count)) {
-                    UniversalPlayer p = Server.getInstance().getPlayer(acc.getUniqueId());
+                    UniversalPlayer p = Server.getInstance().getPlayer(acc.getPlayerId());
                     RewardManager.Reward reward = rw.getReward(count);
 
                     if (p != null) {

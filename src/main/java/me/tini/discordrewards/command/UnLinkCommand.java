@@ -33,13 +33,13 @@ public class UnLinkCommand extends Command {
         Iterator<LinkedAccount> iterator = accounts.iterator();
         while (iterator.hasNext()) {
             LinkedAccount account = iterator.next();
-            if (account.getName().equals(mcName)) {
+            if (account.getPlayerName().equals(mcName)) {
                 iterator.remove();
                 linkManager.save();
 
                 if (linkManager.getChannel() != null) {
                     final Guild guild = linkManager.getChannel().getGuild();
-                    final Member member = guild.getMemberById(account.getId());
+                    final Member member = guild.getMemberById(account.getDiscordId());
                     final Role role = linkManager.getDiscord().getVerifiedRole(guild);
 
                     if (member != null && role != null) {

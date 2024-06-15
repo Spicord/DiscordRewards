@@ -109,7 +109,7 @@ public class RewardManager {
     }
 
     public void cache(LinkedAccount acc, int msgcount) {
-        getCachedData(acc.getUniqueId()).add(msgcount);
+        getCachedData(acc.getPlayerId()).add(msgcount);
         saveCached();
     }
 

@@ -24,16 +24,16 @@ public class ServerJoinListener {
         LinkedAccount acc = linkManager.getAccount(uuid);
 
         if (acc != null) {
-            if (!player.getName().equals(acc.getName())) {
+            if (!player.getName().equals(acc.getPlayerName())) {
                 LinkedAccount newAccount = new LinkedAccount(
-                    acc.getId(),
+                    acc.getDiscordId(),
                     player.getName(), // new name
                     uuid.toString(),
                     acc.getMessageCount()
                 );
 
-                linkManager.getAccounts().remove(acc.getId());
-                linkManager.getAccounts().put(newAccount.getId(), newAccount);
+                linkManager.getAccounts().remove(acc.getDiscordId());
+                linkManager.getAccounts().put(newAccount.getDiscordId(), newAccount);
                 linkManager.save();
 
                 acc = newAccount;

@@ -62,13 +62,7 @@ public class PlaceholdersImpl extends PlaceholderExpansion {
                     User user = bot.getJda().getUserById(discordId);
 
                     if (user != null) {
-                        String discriminator = user.getDiscriminator();
-
-                        if (!"0000".equals(discriminator)) {
-                            return user.getName() + "#" + discriminator;
-                        } else {
-                            return user.getName();
-                        }
+                        return user.getName();
                     }
                 }
                 return String.valueOf(discordId);
