@@ -18,7 +18,7 @@ public class DiscordRewardsBungee extends Plugin implements DiscordRewardsPlugin
 
         SpicordLoader.addStartupListener(spicord -> {
 
-            addon = new DiscordRewards();
+            addon = new DiscordRewards(this);
 
             addon.initFields(spicord, getFile(), getDataFolder(), getLogger());
 
@@ -37,6 +37,11 @@ public class DiscordRewardsBungee extends Plugin implements DiscordRewardsPlugin
     @Override
     public DiscordRewards getAddon() {
         return addon;
+    }
+
+    @Override
+    public String getVersion() {
+        return getDescription().getVersion();
     }
 
     @Override

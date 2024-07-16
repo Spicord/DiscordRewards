@@ -37,7 +37,7 @@ public class DiscordRewardsVelocity extends VelocityPlugin implements DiscordRew
 
         SpicordLoader.addStartupListener(spicord -> {
 
-            addon = new DiscordRewards();
+            addon = new DiscordRewards(this);
 
             addon.initFields(spicord, getFile(), getDataFolder(), getLogger());
 
@@ -68,5 +68,10 @@ public class DiscordRewardsVelocity extends VelocityPlugin implements DiscordRew
     @Override
     public DiscordRewards getAddon() {
         return addon;
+    }
+
+    @Override
+    public String getVersion() {
+        return DiscordRewardsVelocity.class.getAnnotation(Plugin.class).version();
     }
 }

@@ -7,7 +7,6 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 import org.spicord.Spicord;
@@ -30,12 +29,11 @@ import me.tini.discordrewards.linking.LinkingServiceImpl;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.exceptions.HierarchyException;
 import net.dv8tion.jda.api.exceptions.InsufficientPermissionException;
@@ -50,20 +48,16 @@ public class DiscordRewards extends SimpleAddon {
 
     private GuildMessageChannel channel;
     private Long channelId;
-    private String prefix;
 
     private LinkingServiceImpl ls;
     private DiscordRewardsPlugin plugin;
-
-    public DiscordRewards() {
-        this(null);
-    }
 
     public DiscordRewards(DiscordRewardsPlugin plugin) {
         super(
             "DiscordRewards",
             "rewards",
-            "Tini"
+            "Tini",
+            plugin.getVersion()
         );
         this.plugin = plugin;
     }
@@ -133,8 +127,6 @@ public class DiscordRewards extends SimpleAddon {
             return;
         }
 
-        this.prefix = bot.getCommandPrefix();
-
         this.linkManager.setBot(bot);
         this.linkManager.setChannel(channel);
         this.linkManager.setDiscord(config.getDiscord());
@@ -161,9 +153,7 @@ public class DiscordRewards extends SimpleAddon {
 
         SlashCommand linkCommand = bot.commandBuilder("link", "Link your Minecraft account to your Discord account")
             .addOption(OptionType.STRING, "code", "Your linking code", true, false)
-            .setExecutor(e -> {
-                
-            });
+            .setExecutor(this::handleLinkCommand);
 
         bot.registerCommand(linkCommand, guild);
     }
@@ -172,7 +162,6 @@ public class DiscordRewards extends SimpleAddon {
     public void onShutdown(DiscordBot bot) {
         this.channelId = null;
         this.channel   = null;
-        this.prefix    = null;
     }
 
     @Override
@@ -184,67 +173,11 @@ public class DiscordRewards extends SimpleAddon {
 
     @Override
     public void onMessageReceived(DiscordBot bot, MessageReceivedEvent event) {
-        User author = event.getAuthor();
-        Member member = event.getMember();
-        Message message = event.getMessage();
-        String messageStr = message.getContentRaw();
+        if (config.isRewardEnabled()) {
+            User user = event.getAuthor();
+            long userId = user.getIdLong();
+            LinkedAccount acc = linkManager.getAccount(userId);
 
-        if (!event.isFromType(ChannelType.TEXT))
-            return;
-
-        if (messageStr.equals(prefix + "instructions"))
-            return;
-
-        long id = author.getIdLong();
-        LinkedAccount acc = linkManager.getAccount(id);
-
-        if (event.getChannel().getIdLong() == channelId) {
-
-            if (author.isBot()) {
-                if (bot.getJda().getSelfUser().getIdLong() != id) {
-                    message.delete().queue();
-                }
-                return;
-            }
-
-            String code = messageStr;
-
-            message.delete().queue();
-
-            if (acc != null) return; // already verified
-
-            if (linkManager.isValidCode(code)) {
-                Discord dc = config.getDiscord();
-                LinkedAccount account = linkManager.link(author.getIdLong(), code);
-
-                Function<String, String> placeholders = str -> str.replace("{player_name}", account.getPlayerName());
-                Server server = Server.getInstance();
-
-                if (config.isBroadcastEnabled()) {
-                    config.getBroadcastMessage().stream()
-                            .map(placeholders)
-                            .forEach(server::broadcast);
-                }
-                if (config.isRewardEnabled()) {
-                    config.getRewardCommands().stream()
-                            .map(placeholders)
-                            .forEach(Config::executeSyncCommand);
-                }
-                if (dc.shouldSendMessage()) {
-                    Embed embed = embedLoader.getEmbedByName("completed");
-                    String str = embed.toString()
-                            .replace("%player%", account.getPlayerName());
-
-                    Embed.fromJson(str).sendToChannel(channel)
-                            .delete().queueAfter(10, TimeUnit.SECONDS);
-                }
-                renameUser(member, account.getPlayerName());
-                addRole(member);
-            } else {
-                Embed embed = embedLoader.getEmbedByName("invalid-code");
-                embed.sendToChannel(channel).delete().queueAfter(10, TimeUnit.SECONDS);
-            }
-        } else if (config.isRewardEnabled()) {
             if (acc != null) {
                 int count = acc.getMessageCount() + 1;
                 acc.setMessageCount(count);
@@ -264,7 +197,7 @@ public class DiscordRewards extends SimpleAddon {
                         Embed embed = embedLoader.getEmbedByName(p != null ? "reached" : "reached-offline");
 
                         embed = Embed.fromJson(embed.toString()
-                                .replace("{user_mention}", author.getAsMention())
+                                .replace("{user_mention}", user.getAsMention())
                                 .replace("{amount}", String.valueOf(count)));
 
                         embed.sendToChannel(event.getGuildChannel());
@@ -274,10 +207,58 @@ public class DiscordRewards extends SimpleAddon {
         }
     }
 
+    private void handleLinkCommand(SlashCommandInteractionEvent event) {
+        Member member = event.getMember();
+        long memberId = member.getIdLong();
+
+        final String code = event.getOption("code").getAsString();
+
+        LinkedAccount acc = linkManager.getAccount(memberId);
+
+        if (acc != null) {
+            // already verified
+            event.reply("Already verified").setEphemeral(true).queue();
+            return;
+        }
+
+        if (linkManager.isValidCode(code)) {
+            Discord dc = config.getDiscord();
+            LinkedAccount account = linkManager.link(memberId, code);
+
+            Function<String, String> placeholders = str -> str.replace("{player_name}", account.getPlayerName());
+            Server server = Server.getInstance();
+
+            if (config.isBroadcastEnabled()) {
+                config.getBroadcastMessage().stream()
+                        .map(placeholders)
+                        .forEach(server::broadcast);
+            }
+            if (config.isRewardEnabled()) {
+                config.getRewardCommands().stream()
+                        .map(placeholders)
+                        .forEach(Config::executeSyncCommand);
+            }
+
+            Embed embed = embedLoader.getEmbedByName("completed");
+            String str = embed.toString().replace("%player%", account.getPlayerName());
+            embed = Embed.fromJson(str);
+
+            final boolean isEphemeralMessage = !dc.shouldSendMessage();
+
+            event.replyEmbeds(embed.toJdaEmbed()).setEphemeral(isEphemeralMessage).queue();
+
+            renameUser(member, account.getPlayerName());
+            addRole(member);
+        } else {
+            Embed embed = embedLoader.getEmbedByName("invalid-code");
+            event.replyEmbeds(embed.toJdaEmbed()).setEphemeral(true).queue();
+        }
+    }
+
     protected void renameUser(Member member, String newName) {
         Discord dc = config.getDiscord();
-		Guild guild = member.getGuild();
 		if (dc.shouldRenameUser()) {
+	        Guild guild = member.getGuild();
             Function<String, String> placeholders = str -> str.replace("{player_name}", newName);
             String name = placeholders.apply(dc.getNameTemplate());
             try {
@@ -292,8 +273,8 @@ public class DiscordRewards extends SimpleAddon {
 
 	protected void addRole(Member member) {
         Discord dc = config.getDiscord();
-		Guild guild = member.getGuild();
         if (dc.shouldAddRole()) {
+            Guild guild = member.getGuild();
             Role role = dc.getVerifiedRole(guild);
             if (role == null) {
                 getLogger().severe("Could't add role to user '"+member.getAsMention()+"' (role not found!)");

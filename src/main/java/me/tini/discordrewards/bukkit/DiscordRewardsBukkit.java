@@ -50,6 +50,11 @@ public class DiscordRewardsBukkit extends JavaPlugin implements DiscordRewardsPl
     }
 
     @Override
+    public String getVersion() {
+        return getDescription().getVersion();
+    }
+
+    @Override
     public File getFile() {
         return super.getFile();
     }
