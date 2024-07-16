@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.entities.User;
 
 public class PlaceholdersImpl extends PlaceholderExpansion {
 
-    private DiscordRewardsBukkit plugin;
+    private final DiscordRewardsBukkit plugin;
 
     public PlaceholdersImpl(DiscordRewardsBukkit plugin) {
         this.plugin = plugin;
@@ -33,18 +33,18 @@ public class PlaceholdersImpl extends PlaceholderExpansion {
     }
 
     @Override
-    public String onPlaceholderRequest(Player p, String params) {
-        return onRequest(p, params);
+    public String onPlaceholderRequest(Player player, String params) {
+        return onRequest(player, params);
     }
 
     @Override
-    public String onRequest(OfflinePlayer p, String params) {
-        if (p == null) {
+    public String onRequest(OfflinePlayer player, String params) {
+        if (player == null) {
             return null;
         }
 
         if ("verifycode".equals(params)) {
-            String code = plugin.getAddon().getLinkManager().getPending().get(p.getUniqueId());
+            String code = plugin.getAddon().getLinkManager().getPending().get(player.getUniqueId());
             if (code == null) {
                 return "None";
             }
@@ -52,7 +52,7 @@ public class PlaceholdersImpl extends PlaceholderExpansion {
         }
 
         if ("discorduser".equals(params)) {
-            LinkedAccount account = plugin.getAddon().getLinkManager().getAccount(p.getUniqueId());
+            LinkedAccount account = plugin.getAddon().getLinkManager().getAccount(player.getUniqueId());
             if (account != null) {
                 long discordId = account.getDiscordId();
 

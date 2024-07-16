@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
 
-public class Discord {
+public class DiscordConfig {
 
     private boolean addRole;
     private boolean renameUser;
@@ -20,7 +20,7 @@ public class Discord {
     private String role;
     private Logger logger;
 
-    Discord(Logger logger, YamlConfiguration config) {
+    DiscordConfig(Logger logger, YamlConfiguration config) {
         this.logger       = logger;
         this.addRole      = config.getBoolean("add-role.enabled", false);
         this.roleType     = config.getString("add-role.type");

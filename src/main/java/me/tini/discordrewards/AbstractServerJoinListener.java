@@ -8,12 +8,12 @@ import me.tini.discordrewards.config.RewardManager.Reward;
 import me.tini.discordrewards.linking.LinkedAccount;
 import me.tini.discordrewards.linking.LinkManager;
 
-public class ServerJoinListener {
+public abstract class AbstractServerJoinListener {
 
     private final LinkManager linkManager;
     private final RewardManager rewards;
 
-    public ServerJoinListener(LinkManager linkManager, RewardManager rewards) {
+    public AbstractServerJoinListener(LinkManager linkManager, RewardManager rewards) {
         this.linkManager = linkManager;
         this.rewards = rewards;
     }
@@ -21,22 +21,22 @@ public class ServerJoinListener {
     public void handlePlayerJoin(UniversalPlayer player, String serverName, boolean isProxy) {
         UUID uuid = player.getUniqueId();
 
-        LinkedAccount acc = linkManager.getAccount(uuid);
+        LinkedAccount account = linkManager.getAccount(uuid);
 
-        if (acc != null) {
-            if (!player.getName().equals(acc.getPlayerName())) {
+        if (account != null) {
+            if (!player.getName().equals(account.getPlayerName())) {
                 LinkedAccount newAccount = new LinkedAccount(
-                    acc.getDiscordId(),
+                    account.getDiscordId(),
                     player.getName(), // new name
                     uuid.toString(),
-                    acc.getMessageCount()
+                    account.getMessageCount()
                 );
 
-                linkManager.getAccounts().remove(acc.getDiscordId());
+                linkManager.getAccounts().remove(account.getDiscordId());
                 linkManager.getAccounts().put(newAccount.getDiscordId(), newAccount);
                 linkManager.save();
 
-                acc = newAccount;
+                account = newAccount;
             }
 
             if (rewards.isCached(uuid)) {

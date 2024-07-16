@@ -6,19 +6,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 
 import eu.mcdb.universal.player.UniversalPlayer;
-import me.tini.discordrewards.ServerJoinListener;
+import me.tini.discordrewards.AbstractServerJoinListener;
 import me.tini.discordrewards.config.RewardManager;
 import me.tini.discordrewards.linking.LinkManager;
 
-public class BukkitJoinListener extends ServerJoinListener implements Listener {
+public class BukkitJoinListener extends AbstractServerJoinListener implements Listener {
 
-    public BukkitJoinListener(LinkManager linkManager, RewardManager rewards) {
-        super(linkManager, rewards);
+    public BukkitJoinListener(LinkManager linkManager, RewardManager rewardManager) {
+        super(linkManager, rewardManager);
     }
 
     @EventHandler
-    public void onPlayerJoin(PlayerJoinEvent e) {
-        Player player = e.getPlayer();
+    public void onPlayerJoin(PlayerJoinEvent event) {
+        Player player = event.getPlayer();
 
         super.handlePlayerJoin(
             new UniversalPlayer(player.getName(), player.getUniqueId()),

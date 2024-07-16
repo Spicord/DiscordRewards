@@ -37,10 +37,10 @@ public class UnLinkCommand extends Command {
                 iterator.remove();
                 linkManager.save();
 
-                if (linkManager.getChannel() != null) {
-                    final Guild guild = linkManager.getChannel().getGuild();
+                if (linkManager.getGuild() != null) {
+                    final Guild guild = linkManager.getGuild();
                     final Member member = guild.getMemberById(account.getDiscordId());
-                    final Role role = linkManager.getDiscord().getVerifiedRole(guild);
+                    final Role role = linkManager.getDiscordConfig().getVerifiedRole(guild);
 
                     if (member != null && role != null) {
                         guild.removeRoleFromMember(member, role).queue();

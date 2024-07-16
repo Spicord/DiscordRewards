@@ -23,14 +23,14 @@ import me.tini.discordrewards.linking.LinkedAccount;
 
 public class RewardManager {
 
+    private static final Gson GSON = new Gson();
+
     private Map<String, Reward> rewards;
     private boolean shouldSendDiscordMessage;
     private Map<UUID, Set<Integer>> cached;
     private File cachedFile;
-    private Gson gson;
 
     RewardManager(File dataFolder, YamlConfiguration config) {
-        this.gson    = new Gson();
         this.rewards = new HashMap<String, Reward>();
 
         this.shouldSendDiscordMessage = config.getBoolean("send-discord-message");
@@ -38,9 +38,9 @@ public class RewardManager {
         List<?> rewardList = config.getList("message-rewards");
 
         for (Object rawRewardData : rewardList) {
-            JsonElement rewardDataJson = gson.toJsonTree(rawRewardData);
+            JsonElement rewardDataJson = GSON.toJsonTree(rawRewardData);
 
-            Map<String, Reward> obj = gson.fromJson(rewardDataJson, rewardsFileType());
+            Map<String, Reward> obj = GSON.fromJson(rewardDataJson, rewardsFileType());
 
             Entry<String, Reward> rewardData = obj.entrySet().iterator().next();
 
@@ -60,7 +60,7 @@ public class RewardManager {
         try {
             if (cachedFile.exists()) {
                 String json = new String(Files.readAllBytes(cachedFile.toPath()));
-                this.cached = gson.fromJson(json, cacheFileType());
+                this.cached = GSON.fromJson(json, cacheFileType());
 
                 if (this.cached == null) {
                     // should not happen, maybe show a warning.
@@ -77,7 +77,7 @@ public class RewardManager {
 
     public void saveCached() {
         try (FileOutputStream fos = new FileOutputStream(cachedFile)) {
-            String json = gson.toJson(cached);
+            String json = GSON.toJson(cached);
             fos.write(json.getBytes());
             fos.flush();
         } catch (Exception e) {

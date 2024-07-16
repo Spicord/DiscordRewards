@@ -67,10 +67,8 @@ public class DiscordRewardsSponge implements DiscordRewardsPlugin {
 
     @Override
     public String getVersion() {
-        final String pluginId = DiscordRewardsSponge.class.getAnnotation(Plugin.class).value();
-
         return Sponge.pluginManager()
-            .plugin(pluginId).get()
+            .fromInstance(this).get()
             .metadata()
             .version()
             .toString();

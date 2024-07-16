@@ -11,18 +11,19 @@ public class DiscordJoinListener extends ListenerAdapter {
     private LinkManager linkManager;
     private DiscordRewards addon;
 
-    public DiscordJoinListener(LinkManager lm, DiscordRewards addon) {
-        this.linkManager = lm;
+    public DiscordJoinListener(LinkManager linkManager, DiscordRewards addon) {
+        this.linkManager = linkManager;
         this.addon = addon;
     }
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         Member member = event.getMember();
-        LinkedAccount acc = linkManager.getAccount(member.getUser().getIdLong());
-        if (acc != null) {
+        LinkedAccount account = linkManager.getAccount(member.getUser().getIdLong());
+
+        if (account != null) {
             addon.getLogger().info("An user previously verified has joined, adding role and renaming if necessary.");
-            addon.renameUser(member, acc.getPlayerName());
+            addon.renameUser(member, account.getPlayerName());
             addon.addRole(member);
         }
     }

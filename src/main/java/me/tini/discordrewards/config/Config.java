@@ -21,7 +21,7 @@ public class Config {
     @Getter private List<String> rewardCommands;
     @Getter private String clickToCopyText;
     @Getter private String alreadyVerifiedMessage;
-    @Getter private Discord discord;
+    @Getter private DiscordConfig discordConfig;
     @Getter private RewardManager rewards;
 
     @Getter private final File dataFolder;
@@ -55,7 +55,7 @@ public class Config {
         this.alreadyVerifiedMessage = alreadyVerifiedMessage.replace("{prefix}", prefix);
         this.alreadyVerifiedMessage = ChatColor.translateAlternateColorCodes('&', alreadyVerifiedMessage);
 
-        this.discord = new Discord(logger, discord);
+        this.discordConfig = new DiscordConfig(logger, discord);
         this.rewards = new RewardManager(dataFolder, rewards);
     }
 

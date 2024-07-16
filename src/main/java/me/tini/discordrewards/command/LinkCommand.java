@@ -24,7 +24,7 @@ public class LinkCommand extends Command {
         if (sender.isPlayer()) {
             UniversalPlayer player = sender.getPlayer();
 
-            if (linkManager.isVerified(player.getUniqueId())) {
+            if (linkManager.isLinked(player.getUniqueId())) {
                 player.sendMessage(config.getAlreadyVerifiedMessage());
             } else {
                 String code = linkManager.generateCode();

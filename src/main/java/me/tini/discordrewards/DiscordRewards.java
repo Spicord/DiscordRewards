@@ -21,7 +21,7 @@ import eu.mcdb.universal.player.UniversalPlayer;
 import me.tini.discordrewards.command.LinkCommand;
 import me.tini.discordrewards.command.UnLinkCommand;
 import me.tini.discordrewards.config.Config;
-import me.tini.discordrewards.config.Discord;
+import me.tini.discordrewards.config.DiscordConfig;
 import me.tini.discordrewards.config.RewardManager;
 import me.tini.discordrewards.linking.LinkManager;
 import me.tini.discordrewards.linking.LinkedAccount;
@@ -49,7 +49,7 @@ public class DiscordRewards extends SimpleAddon {
     private GuildMessageChannel channel;
     private Long channelId;
 
-    private LinkingServiceImpl ls;
+    private LinkingServiceImpl linkingService;
     private DiscordRewardsPlugin plugin;
 
     public DiscordRewards(DiscordRewardsPlugin plugin) {
@@ -80,8 +80,8 @@ public class DiscordRewards extends SimpleAddon {
         this.linkManager = new LinkManager(new File(getDataFolder(), "linked.json"));
         this.embedLoader = extractEmbeds();
 
-        ls = new LinkingServiceImpl(linkManager, spicord);
-        ls.register();
+        linkingService = new LinkingServiceImpl(linkManager, spicord);
+        linkingService.register();
 
         new LinkCommand(linkManager, config).register(plugin);
         new UnLinkCommand(linkManager).register(plugin);
@@ -115,7 +115,7 @@ public class DiscordRewards extends SimpleAddon {
 
     @Override
     public void onReady(DiscordBot bot) {
-        this.channelId = config.getDiscord().getChannelId();
+        this.channelId = config.getDiscordConfig().getChannelId();
         this.channel = bot.getJda().getTextChannelById(channelId);
 
         if (channel == null) {
@@ -128,8 +128,8 @@ public class DiscordRewards extends SimpleAddon {
         }
 
         this.linkManager.setBot(bot);
-        this.linkManager.setChannel(channel);
-        this.linkManager.setDiscord(config.getDiscord());
+        this.linkManager.setGuild(channel.getGuild());
+        this.linkManager.setDiscordConfig(config.getDiscordConfig());
 
         bot.getJda().addEventListener(new DiscordJoinListener(linkManager, this));
 
@@ -143,10 +143,6 @@ public class DiscordRewards extends SimpleAddon {
                 MessageEmbed embed = embedLoader.getEmbedByName("instructions").toJdaEmbed();
 
                 e.replyEmbeds(embed).queue();
-
-                // Ephemeral variant:
-                //e.deferReply(true);
-                //e.getHook().sendMessageEmbeds(embed).queue();
             });
 
         bot.registerCommand(instructionsCommand, guild);
@@ -174,31 +170,33 @@ public class DiscordRewards extends SimpleAddon {
     @Override
     public void onMessageReceived(DiscordBot bot, MessageReceivedEvent event) {
         if (config.isRewardEnabled()) {
-            User user = event.getAuthor();
-            long userId = user.getIdLong();
-            LinkedAccount acc = linkManager.getAccount(userId);
+            final User user = event.getAuthor();
+            final long userId = user.getIdLong();
+            final LinkedAccount accout = linkManager.getAccount(userId);
 
-            if (acc != null) {
-                int count = acc.getMessageCount() + 1;
-                acc.setMessageCount(count);
-                RewardManager rw = config.getRewards();
+            if (accout != null) {
+                final int newMessageCount = accout.getMessageCount() + 1;
 
-                if (rw.appliesForReward(count)) {
-                    UniversalPlayer p = Server.getInstance().getPlayer(acc.getPlayerId());
-                    RewardManager.Reward reward = rw.getReward(count);
+                accout.setMessageCount(newMessageCount);
 
-                    if (p != null) {
-                        rw.give(reward, p);
+                RewardManager manager = config.getRewards();
+
+                if (manager.appliesForReward(newMessageCount)) {
+                    UniversalPlayer player = Server.getInstance().getPlayer(accout.getPlayerId());
+                    RewardManager.Reward reward = manager.getReward(newMessageCount);
+
+                    if (player != null) {
+                        manager.give(reward, player);
                     } else {
-                        rw.cache(acc, count);
+                        manager.cache(accout, newMessageCount);
                     }
 
-                    if (rw.shouldSendDiscordMessage()) {
-                        Embed embed = embedLoader.getEmbedByName(p != null ? "reached" : "reached-offline");
+                    if (manager.shouldSendDiscordMessage()) {
+                        Embed embed = embedLoader.getEmbedByName(player != null ? "reached" : "reached-offline");
 
                         embed = Embed.fromJson(embed.toString()
                                 .replace("{user_mention}", user.getAsMention())
-                                .replace("{amount}", String.valueOf(count)));
+                                .replace("{amount}", String.valueOf(newMessageCount)));
 
                         embed.sendToChannel(event.getGuildChannel());
                     }
@@ -208,21 +206,19 @@ public class DiscordRewards extends SimpleAddon {
     }
 
     private void handleLinkCommand(SlashCommandInteractionEvent event) {
-        Member member = event.getMember();
-        long memberId = member.getIdLong();
+        final Member member = event.getMember();
+        final long memberId = member.getIdLong();
 
-        final String code = event.getOption("code").getAsString();
-
-        LinkedAccount acc = linkManager.getAccount(memberId);
-
-        if (acc != null) {
-            // already verified
+        if (linkManager.isLinked(memberId)) {
+            // TODO: already verified embed
             event.reply("Already verified").setEphemeral(true).queue();
             return;
         }
 
+        final String code = event.getOption("code").getAsString();
+
         if (linkManager.isValidCode(code)) {
-            Discord dc = config.getDiscord();
+            DiscordConfig discordConfig = config.getDiscordConfig();
             LinkedAccount account = linkManager.link(memberId, code);
 
             Function<String, String> placeholders = str -> str.replace("{player_name}", account.getPlayerName());
@@ -243,7 +239,7 @@ public class DiscordRewards extends SimpleAddon {
             String str = embed.toString().replace("%player%", account.getPlayerName());
             embed = Embed.fromJson(str);
 
-            final boolean isEphemeralMessage = !dc.shouldSendMessage();
+            final boolean isEphemeralMessage = !discordConfig.shouldSendMessage();
 
             event.replyEmbeds(embed.toJdaEmbed()).setEphemeral(isEphemeralMessage).queue();
 
@@ -255,14 +251,16 @@ public class DiscordRewards extends SimpleAddon {
         }
     }
 
-    protected void renameUser(Member member, String newName) {
-        Discord dc = config.getDiscord();
-		if (dc.shouldRenameUser()) {
+    protected void renameUser(Member member, String newNameTemplate) {
+        DiscordConfig discordConfig = config.getDiscordConfig();
+
+        if (discordConfig.shouldRenameUser()) {
 	        Guild guild = member.getGuild();
-            Function<String, String> placeholders = str -> str.replace("{player_name}", newName);
-            String name = placeholders.apply(dc.getNameTemplate());
+            Function<String, String> placeholders = str -> str.replace("{player_name}", newNameTemplate);
+            String newName = placeholders.apply(discordConfig.getNameTemplate());
+
             try {
-                guild.modifyNickname(member, name).queue();
+                guild.modifyNickname(member, newName).queue();
             } catch (InsufficientPermissionException e) {
                 getLogger().severe("Could't change nickname of member because the bot doesn't have permission to!");
             } catch (HierarchyException e) {
@@ -272,10 +270,12 @@ public class DiscordRewards extends SimpleAddon {
 	}
 
 	protected void addRole(Member member) {
-        Discord dc = config.getDiscord();
-        if (dc.shouldAddRole()) {
+        DiscordConfig discordConfig = config.getDiscordConfig();
+
+        if (discordConfig.shouldAddRole()) {
             Guild guild = member.getGuild();
-            Role role = dc.getVerifiedRole(guild);
+            Role role = discordConfig.getVerifiedRole(guild);
+
             if (role == null) {
                 getLogger().severe("Could't add role to user '"+member.getAsMention()+"' (role not found!)");
             } else {

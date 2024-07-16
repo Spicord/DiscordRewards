@@ -15,9 +15,9 @@ import org.spicord.bot.DiscordBot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import me.tini.discordrewards.config.Discord;
+import me.tini.discordrewards.config.DiscordConfig;
 import me.tini.discordrewards.util.CodeGenerator;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.Guild;
 
 public class LinkManager {
 
@@ -27,8 +27,8 @@ public class LinkManager {
     private final File linkedFile;
     private final Map<UUID, String> uuidNameCache;
     private DiscordBot bot;
-    private GuildMessageChannel channel;
-    private Discord discord;
+    private DiscordConfig discordConfig;
+    private Guild guild;
 
     public LinkManager(File linkedFile) {
         this.gson = new GsonBuilder().setPrettyPrinting().create();
@@ -71,6 +71,10 @@ public class LinkManager {
         return accounts.get(id);
     }
 
+    public boolean isLinked(Long id) {
+        return accounts.get(id) != null;
+    }
+
     public LinkedAccount getAccount(UUID uuid) {
         return accounts.values().stream()
                 .filter(account -> account.getPlayerId().equals(uuid))
@@ -78,7 +82,7 @@ public class LinkManager {
                 .orElse(null);
     }
 
-    public boolean isVerified(UUID uuid) {
+    public boolean isLinked(UUID uuid) {
         return accounts.values().stream()
                 .map(LinkedAccount::getPlayerId)
                 .anyMatch(uuid::equals);
@@ -151,19 +155,19 @@ public class LinkManager {
         return bot;
     }
 
-    public void setChannel(GuildMessageChannel channel) {
-        this.channel = channel;
+    public void setDiscordConfig(DiscordConfig discordConfig) {
+        this.discordConfig = discordConfig;
     }
 
-    public GuildMessageChannel getChannel() {
-        return channel;
+    public DiscordConfig getDiscordConfig() {
+        return discordConfig;
     }
 
-    public void setDiscord(Discord discord) {
-        this.discord = discord;
+    public void setGuild(Guild guild) {
+        this.guild = guild;
     }
 
-    public Discord getDiscord() {
-        return discord;
+    public Guild getGuild() {
+        return guild;
     }
 }
