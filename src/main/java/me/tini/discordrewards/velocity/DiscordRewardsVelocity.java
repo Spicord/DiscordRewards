@@ -45,13 +45,7 @@ public class DiscordRewardsVelocity extends VelocityPlugin implements DiscordRew
 
             LinkManager linkManager = addon.getLinkManager();
 
-            getEventManager().register(
-                this,
-                new VelocityJoinListener(
-                    linkManager,
-                    addon.getConfig().getRewards()
-                )
-            );
+            getEventManager().register(this, new VelocityJoinListener(addon));
 
             getProxyServer()
                 .getScheduler()

@@ -7,13 +7,12 @@ import org.bukkit.event.player.PlayerJoinEvent;
 
 import eu.mcdb.universal.player.UniversalPlayer;
 import me.tini.discordrewards.AbstractServerJoinListener;
-import me.tini.discordrewards.config.RewardManager;
-import me.tini.discordrewards.linking.LinkManager;
+import me.tini.discordrewards.DiscordRewards;
 
 public class BukkitJoinListener extends AbstractServerJoinListener implements Listener {
 
-    public BukkitJoinListener(LinkManager linkManager, RewardManager rewardManager) {
-        super(linkManager, rewardManager);
+    public BukkitJoinListener(DiscordRewards addon) {
+        super(addon);
     }
 
     @EventHandler

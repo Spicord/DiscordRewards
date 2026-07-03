@@ -15,7 +15,6 @@ import org.spicord.bot.DiscordBot;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
-import me.tini.discordrewards.config.DiscordConfig;
 import me.tini.discordrewards.util.CodeGenerator;
 import net.dv8tion.jda.api.entities.Guild;
 
@@ -27,7 +26,6 @@ public class LinkManager {
     private final File linkedFile;
     private final Map<UUID, String> uuidNameCache;
     private DiscordBot bot;
-    private DiscordConfig discordConfig;
     private Guild guild;
 
     public LinkManager(File linkedFile) {
@@ -38,8 +36,14 @@ public class LinkManager {
 
         this.linkedFile = linkedFile;
 
+        loadLinked();
+    }
+
+    public void loadLinked() {
         try {
             if (linkedFile.exists()) {
+                accounts.clear();
+
                 LinkedAccount[] linked = gson.fromJson(new FileReader(linkedFile), LinkedAccount[].class);
 
                 if (linked == null || linked.length == 0) {
@@ -153,14 +157,6 @@ public class LinkManager {
 
     public DiscordBot getBot() {
         return bot;
-    }
-
-    public void setDiscordConfig(DiscordConfig discordConfig) {
-        this.discordConfig = discordConfig;
-    }
-
-    public DiscordConfig getDiscordConfig() {
-        return discordConfig;
     }
 
     public void setGuild(Guild guild) {

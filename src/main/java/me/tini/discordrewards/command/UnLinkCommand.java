@@ -8,6 +8,7 @@ import eu.mcdb.universal.command.api.Command;
 import eu.mcdb.universal.command.api.CommandParameter;
 import eu.mcdb.universal.command.api.CommandParameters;
 import me.tini.discordrewards.linking.LinkedAccount;
+import me.tini.discordrewards.config.Config;
 import me.tini.discordrewards.linking.LinkManager;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -16,11 +17,13 @@ import net.dv8tion.jda.api.entities.Role;
 public class UnLinkCommand extends Command {
 
     private final LinkManager linkManager;
+    private final Config config;
 
-    public UnLinkCommand(LinkManager linkManager) {
+    public UnLinkCommand(LinkManager linkManager, Config config) {
         super("unlink", "discordrewards.admin.unlink", new String[] { "unlink-discord" });
 
         this.linkManager = linkManager;
+        this.config = config;
 
         setParameter(0, new CommandParameter("name", false));
         setCommandHandler(this::handle);
@@ -40,7 +43,7 @@ public class UnLinkCommand extends Command {
                 if (linkManager.getGuild() != null) {
                     final Guild guild = linkManager.getGuild();
                     final Member member = guild.getMemberById(account.getDiscordId());
-                    final Role role = linkManager.getDiscordConfig().getVerifiedRole(guild);
+                    final Role role = config.getDiscordConfig().getVerifiedRole(guild);
 
                     if (member != null && role != null) {
                         guild.removeRoleFromMember(member, role).queue();

@@ -39,17 +39,11 @@ public class DiscordRewardsSponge implements DiscordRewardsPlugin {
 
             LinkManager linkManager = addon.getLinkManager();
 
-            PluginContainer spicordContainer = Sponge.pluginManager().fromInstance(this).get();
+            PluginContainer plugin = Sponge.pluginManager().fromInstance(this).get();
 
-            Sponge.eventManager().registerListeners(
-                spicordContainer,
-                new SpongeJoinListener(
-                    linkManager,
-                    addon.getConfig().getRewards()
-                )
-            );
+            Sponge.eventManager().registerListeners(plugin, new SpongeJoinListener(addon));
 
-            TaskExecutorService executor = Sponge.asyncScheduler().executor(spicordContainer);
+            TaskExecutorService executor = Sponge.asyncScheduler().executor(plugin);
 
             executor.scheduleAtFixedRate(
                 () -> linkManager.save(),

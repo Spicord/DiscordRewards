@@ -6,13 +6,12 @@ import org.spongepowered.api.event.network.ServerSideConnectionEvent;
 
 import eu.mcdb.universal.player.UniversalPlayer;
 import me.tini.discordrewards.AbstractServerJoinListener;
-import me.tini.discordrewards.config.RewardManager;
-import me.tini.discordrewards.linking.LinkManager;
+import me.tini.discordrewards.DiscordRewards;
 
 public class SpongeJoinListener extends AbstractServerJoinListener {
 
-    public SpongeJoinListener(LinkManager linkManager, RewardManager rewards) {
-        super(linkManager, rewards);
+    public SpongeJoinListener(DiscordRewards addon) {
+        super(addon);
     }
 
     @Listener

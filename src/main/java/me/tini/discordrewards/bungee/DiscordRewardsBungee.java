@@ -26,7 +26,7 @@ public class DiscordRewardsBungee extends Plugin implements DiscordRewardsPlugin
 
             LinkManager linkManager = addon.getLinkManager();
 
-            getProxy().getPluginManager().registerListener(this, new BungeeJoinListener(linkManager, addon.getConfig().getRewards()));
+            getProxy().getPluginManager().registerListener(this, new BungeeJoinListener(addon));
 
             getProxy().getScheduler().schedule(this, () -> linkManager.save(), 5, 5, TimeUnit.MINUTES);
 

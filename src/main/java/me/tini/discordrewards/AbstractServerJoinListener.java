@@ -10,16 +10,17 @@ import me.tini.discordrewards.linking.LinkManager;
 
 public abstract class AbstractServerJoinListener {
 
-    private final LinkManager linkManager;
-    private final RewardManager rewards;
+    private final DiscordRewards addon;
 
-    public AbstractServerJoinListener(LinkManager linkManager, RewardManager rewards) {
-        this.linkManager = linkManager;
-        this.rewards = rewards;
+    public AbstractServerJoinListener(DiscordRewards addon) {
+        this.addon = addon;
     }
 
     public void handlePlayerJoin(UniversalPlayer player, String serverName, boolean isProxy) {
         UUID uuid = player.getUniqueId();
+
+        final LinkManager linkManager = addon.getLinkManager();
+        final RewardManager rewards = addon.getConfig().getRewards();
 
         LinkedAccount account = linkManager.getAccount(uuid);
 

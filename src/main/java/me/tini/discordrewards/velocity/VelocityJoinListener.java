@@ -6,13 +6,12 @@ import com.velocitypowered.api.proxy.Player;
 
 import eu.mcdb.universal.player.UniversalPlayer;
 import me.tini.discordrewards.AbstractServerJoinListener;
-import me.tini.discordrewards.config.RewardManager;
-import me.tini.discordrewards.linking.LinkManager;
+import me.tini.discordrewards.DiscordRewards;
 
 public class VelocityJoinListener extends AbstractServerJoinListener {
 
-    public VelocityJoinListener(LinkManager linkManager, RewardManager rewardManager) {
-        super(linkManager, rewardManager);
+    public VelocityJoinListener(DiscordRewards addon) {
+        super(addon);
     }
 
     @Subscribe

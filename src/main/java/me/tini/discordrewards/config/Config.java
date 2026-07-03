@@ -1,6 +1,10 @@
 package me.tini.discordrewards.config;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 import java.util.function.Function;
 import java.util.logging.Logger;
@@ -30,6 +34,12 @@ public class Config {
     public Config(DiscordRewards addon) {
         this.dataFolder = addon.getDataFolder();
         this.logger = addon.getLogger();
+    }
+
+    public void load() {
+        saveResource(dataFolder, "config.yml", false);
+        saveResource(dataFolder, "discord.yml", false);
+        saveResource(dataFolder, "rewards.yml", false);
 
         YamlConfiguration config = YamlConfiguration.load(new File(dataFolder, "config.yml"));
         YamlConfiguration discord = YamlConfiguration.load(new File(dataFolder, "discord.yml"));
@@ -72,5 +82,18 @@ public class Config {
 
     public static void executeSyncCommand(String command) {
         Server.getInstance().dispatchCommand(command);
+    }
+
+    private static void saveResource(File outDir, String resourcePath, boolean replace) {
+        try {
+            outDir.mkdir();
+            File out = new File(outDir, resourcePath);
+            if (!out.exists() || replace) {
+                InputStream in = Config.class.getResourceAsStream("/" + resourcePath);
+                Files.copy(in, out.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

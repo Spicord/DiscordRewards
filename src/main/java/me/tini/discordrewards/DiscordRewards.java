@@ -1,12 +1,13 @@
 package me.tini.discordrewards;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.ServiceLoader;
+import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.spicord.Spicord;
@@ -19,6 +20,7 @@ import org.spicord.embed.EmbedLoader;
 import eu.mcdb.universal.Server;
 import eu.mcdb.universal.player.UniversalPlayer;
 import me.tini.discordrewards.command.LinkCommand;
+import me.tini.discordrewards.command.ReloadCommand;
 import me.tini.discordrewards.command.UnLinkCommand;
 import me.tini.discordrewards.config.Config;
 import me.tini.discordrewards.config.DiscordConfig;
@@ -62,6 +64,12 @@ public class DiscordRewards extends SimpleAddon {
         this.plugin = plugin;
     }
 
+    public void reload() {
+        config.load();
+        linkManager.loadLinked();
+        embedLoader = extractEmbeds();
+    }
+
     public LinkManager getLinkManager() {
         return linkManager;
     }
@@ -72,9 +80,6 @@ public class DiscordRewards extends SimpleAddon {
 
     @Override
     public void onRegister(Spicord spicord) {
-        saveResource("config.yml", false);
-        saveResource("discord.yml", false);
-        saveResource("rewards.yml", false);
 
         this.config = new Config(this);
         this.linkManager = new LinkManager(new File(getDataFolder(), "linked.json"));
@@ -84,27 +89,23 @@ public class DiscordRewards extends SimpleAddon {
         linkingService.register();
 
         new LinkCommand(linkManager, config).register(plugin);
-        new UnLinkCommand(linkManager).register(plugin);
+        new UnLinkCommand(linkManager, config).register(plugin);
+        new ReloadCommand(this).register(plugin);
+
+        loadInternalExtensions();
+
+        forAllExtensions(e -> e.init(this));
+    }
+
+    public DiscordRewardsPlugin getPlugin() {
+        return plugin;
     }
 
     private EmbedLoader extractEmbeds() {
         try {
             return EmbedLoader.extractAndLoad(getFile(), new File(getDataFolder(), "embed"));
         } catch (Exception e) {
-            throw new RuntimeException();
-        }
-    }
-
-    public void saveResource(String resourcePath, boolean replace) {
-        try {
-            getDataFolder().mkdir();
-            File out = new File(getDataFolder(), resourcePath);
-            if (!out.exists() || replace) {
-                InputStream in = getClass().getResourceAsStream("/" + resourcePath);
-                Files.copy(in, out.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Failed to load embed files", e);
         }
     }
 
@@ -115,6 +116,8 @@ public class DiscordRewards extends SimpleAddon {
 
     @Override
     public void onReady(DiscordBot bot) {
+        forAllExtensions(e -> e.preOnReady(bot));
+
         this.channelId = config.getDiscordConfig().getChannelId();
         this.channel = bot.getJda().getTextChannelById(channelId);
 
@@ -129,7 +132,6 @@ public class DiscordRewards extends SimpleAddon {
 
         this.linkManager.setBot(bot);
         this.linkManager.setGuild(channel.getGuild());
-        this.linkManager.setDiscordConfig(config.getDiscordConfig());
 
         bot.getJda().addEventListener(new DiscordJoinListener(linkManager, this));
 
@@ -152,12 +154,16 @@ public class DiscordRewards extends SimpleAddon {
             .setExecutor(this::handleLinkCommand);
 
         bot.registerCommand(linkCommand, guild);
+
+        forAllExtensions(e -> e.postOnReady(bot));
     }
 
     @Override
     public void onShutdown(DiscordBot bot) {
         this.channelId = null;
         this.channel   = null;
+
+        forAllExtensions(e -> e.onShutdown(bot));
     }
 
     @Override
@@ -165,6 +171,8 @@ public class DiscordRewards extends SimpleAddon {
         this.linkManager = null;
         this.config      = null;
         this.embedLoader = null;
+
+        forAllExtensions(e -> e.onDisable());
     }
 
     @Override
@@ -289,4 +297,22 @@ public class DiscordRewards extends SimpleAddon {
             }
         }
 	}
+
+	private final Set<DiscordRewardsExtension> extensions = new HashSet<>();
+
+    public void forAllExtensions(Consumer<DiscordRewardsExtension> action) {
+        extensions.forEach(action);
+    }
+
+	private void loadInternalExtensions() {
+        Iterator<DiscordRewardsExtension> it = getLoadedExtensions(DiscordRewardsExtension.class);
+
+        while (it.hasNext()) {
+            extensions.add(it.next());
+        }
+    }
+
+    private <T> Iterator<T> getLoadedExtensions(Class<T> cls) {
+        return ServiceLoader.load(cls, cls.getClassLoader()).iterator();
+    }
 }

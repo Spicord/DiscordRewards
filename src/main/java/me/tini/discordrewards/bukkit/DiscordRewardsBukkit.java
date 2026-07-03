@@ -34,7 +34,7 @@ public class DiscordRewardsBukkit extends JavaPlugin implements DiscordRewardsPl
 
                 LinkManager linkManager = addon.getLinkManager();
 
-                getServer().getPluginManager().registerEvents(new BukkitJoinListener(linkManager, addon.getConfig().getRewards()), this);
+                getServer().getPluginManager().registerEvents(new BukkitJoinListener(addon), this);
 
                 long fiveMinInTicks = (60 * 5) * 20; // 6000 ticks
                 getServer().getScheduler().runTaskTimer(this, () -> linkManager.save(), fiveMinInTicks, fiveMinInTicks);
