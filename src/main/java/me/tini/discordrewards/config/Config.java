@@ -34,6 +34,7 @@ public class Config {
     public Config(DiscordRewards addon) {
         this.dataFolder = addon.getDataFolder();
         this.logger = addon.getLogger();
+        load();
     }
 
     public void load() {
