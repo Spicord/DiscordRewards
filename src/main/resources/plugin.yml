@@ -9,3 +9,5 @@ commands:
     aliases: [ discord ]
   unlink:
     aliases: [ unlink-discord ]
+  discordrewards-reload:
+    aliases: []
